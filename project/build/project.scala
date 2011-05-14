@@ -5,7 +5,7 @@ trait Defaults extends BaseAndroidProject {
   override def skipProguard = true
 }
 
-class Parent(info: ProjectInfo) extends ParentProject(info) {
+class Parent(info: ProjectInfo) extends ParentProject(info) with IdeaProject {
   override def shouldCheckOutputDirectories = false
   override def updateAction = task { None }
 
