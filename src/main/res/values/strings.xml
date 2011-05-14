@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">gist</string>
+    <string name="account_type">com.zegoggles.github</string>
 </resources>
