@@ -8,7 +8,7 @@ class MainActivity extends Activity {
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
     setContentView(new TextView(this) {
-      setText("hello, world!!!!!")
+      setText("nothing to see here")
     })
   }
 }

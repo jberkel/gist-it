@@ -1,7 +1,7 @@
 import sbt._
 
 trait Defaults extends BaseAndroidProject {
-  def androidPlatformName = "android-7"
+  def androidPlatformName = "android-8"
   override def skipProguard = true
 }
 
@@ -30,6 +30,8 @@ class Parent(info: ProjectInfo) extends ParentProject(info) with IdeaProject {
     val specs2 = "org.specs2" %% "specs2" % "1.3" % "test"
     def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
     override def testFrameworks = super.testFrameworks ++ Seq(specs2Framework)
+
+
   }
 
   class TestProject(info: ProjectInfo) extends AndroidTestProject(info)
