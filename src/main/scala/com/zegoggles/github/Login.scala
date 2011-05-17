@@ -4,16 +4,21 @@ import android.graphics.Bitmap
 import android.app.ProgressDialog
 import android.net.Uri
 import android.accounts.{Account, AccountManager, AccountAuthenticatorActivity}
-import java.lang.String
 import android.webkit._
-import android.os.Bundle
+import java.lang.String
+import org.json.JSONObject
+import android.os.{Handler, Bundle}
+import actors.Futures
+import com.zegoggles.github.Implicits._
 
 class Login extends AccountAuthenticatorActivity with Logger with ApiActivity {
+  val handler: Handler = new Handler();
+  lazy val view: WebView = findViewById(R.id.webview).asInstanceOf[WebView]
+
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.login)
 
-    val view: WebView = findViewById(R.id.webview).asInstanceOf[WebView]
     view.getSettings.setJavaScriptEnabled(true)
     view.getSettings.setBlockNetworkImage(false)
     view.getSettings.setLoadsImagesAutomatically(true)
@@ -25,21 +30,34 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity {
       override def shouldOverrideUrlLoading(view: WebView, url: String) = {
         super.shouldOverrideUrlLoading(view, url)
         if (url.startsWith(api.redirect_uri)) {
-          val code = Uri.parse(url).getQueryParameter("code")
-          log("code=" + code)
-          val api = getApplication.asInstanceOf[App].api
-          api.exchangeToken(code).map {
-            token =>
-              addAccount("unknown", accountType, token)
-              val b = new Bundle()
-              b.putString(AccountManager.KEY_ACCOUNT_NAME, "unknown")
-              b.putString(AccountManager.KEY_ACCOUNT_TYPE, accountType)
-              setAccountAuthenticatorResult(b)
-              finish()
+          Uri.parse(url).getQueryParameter("code") match {
+            case code:String => Futures.future { exchangeToken(code) }
+            case _ => warn("no code found in redirect uri")
           }
           true
-        } else {
-          false
+        } else false
+      }
+
+      def exchangeToken(code: String) {
+        api.exchangeToken(code).map {
+          token =>
+            log("successfully exchanged code for access token " + token)
+            val resp = api.get("https://github.com/api/v2/json/user/show")
+            resp.getStatusLine.getStatusCode match {
+              case 200 =>
+                val json:String = resp.getEntity
+                log("got " + json)
+                val user = User.fromJSON(new JSONObject(json).getJSONObject("user"))
+                handler.post {
+                  setAccountAuthenticatorResult(
+                    addAccount(user.login, token,
+                      "id" -> user.id.toString,
+                      "name" -> user.name,
+                      "email" -> user.email))
+                  finish()
+                }
+              case c => log("invalid status ("+c+") "+resp.getStatusLine)
+            }
         }
       }
 
@@ -59,14 +77,26 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity {
     view.loadUrl(api.authorizeUrl)
   }
 
-  def addAccount(name: String, atype: String, t: Token): Boolean = {
-    val account = new Account(name, atype)
+  def addAccount(name: String, token: Token, data: (String, String)*): Bundle = {
+    val account = new Account(name, accountType)
     val am = AccountManager.get(this)
-    am.addAccountExplicitly(account, t.access, null)
+    am.addAccountExplicitly(account, token.access, null)
+    am.setAuthToken(account, "access", token.access);
+    for ((k, v) <- data) am.setUserData(account, k, v)
+    val b = new Bundle()
+    b.putString(AccountManager.KEY_ACCOUNT_NAME, name)
+    b.putString(AccountManager.KEY_ACCOUNT_TYPE, accountType)
+    b
   }
 
   def removeAllCookies() {
     CookieSyncManager.createInstance(this);
     CookieManager.getInstance().removeAllCookie();
   }
+
+  override def onDestroy() {
+    view.stopLoading();
+    super.onDestroy()
+  }
 }
+
