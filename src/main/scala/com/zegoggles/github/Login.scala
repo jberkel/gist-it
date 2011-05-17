@@ -6,7 +6,6 @@ import android.net.Uri
 import android.accounts.{Account, AccountManager, AccountAuthenticatorActivity}
 import android.webkit._
 import java.lang.String
-import org.json.JSONObject
 import android.os.{Handler, Bundle}
 import actors.Futures
 import com.zegoggles.github.Implicits._
@@ -45,15 +44,15 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity {
             val resp = api.get("https://github.com/api/v2/json/user/show")
             resp.getStatusLine.getStatusCode match {
               case 200 =>
-                val json:String = resp.getEntity
-                val user = User.fromJSON(new JSONObject(json))
-                handler.post {
-                  setAccountAuthenticatorResult(
-                    addAccount(user.login, token,
-                      "id" -> user.id.toString,
-                      "name" -> user.name,
-                      "email" -> user.email))
-                  finish()
+                User.fromJSON(resp.getEntity).map { user =>
+                  handler.post {
+                    setAccountAuthenticatorResult(
+                      addAccount(user.login, token,
+                        "id" -> user.id.toString,
+                        "name" -> user.name,
+                        "email" -> user.email))
+                    finish()
+                  }
                 }
               case c => log("invalid status ("+c+") "+resp.getStatusLine)
             }

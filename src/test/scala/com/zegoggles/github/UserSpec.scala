@@ -1,12 +1,11 @@
 package com.zegoggles.github
 
 import org.specs2.mutable._
-import org.json.JSONObject
 
 class UserSpec extends Specification {
   "A user" should {
     "be parseable from JSON" in {
-      val u = User.fromJSON(new JSONObject("""
+      val u = User.fromJSON("""
       {
         "user": {
           "gravatar_id": "b8dbb1987e8e5318584865f880036796",
@@ -26,11 +25,15 @@ class UserSpec extends Specification {
           "email": "chris@wanstrath.com"
         }
       }
-      """))
+      """).get
       u.name must be equalTo "Chris Wanstrath"
       u.id must be equalTo 2
       u.login must be equalTo "defunkt"
       u.email must be equalTo "chris@wanstrath.com"
+    }
+
+    "should return None if not parseable" in {
+      User.fromJSON("bla") must beNone
     }
   }
 }
