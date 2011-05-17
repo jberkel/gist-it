@@ -4,11 +4,11 @@ import org.json.JSONObject
 
 object User {
   def fromJSON(o: JSONObject) = {
-    new User(o.getInt("id"),
-      o.getString("name"),
-      o.getString("login"),
-      o.getString("email"))
-
+    val root = if (o.has("user")) o.getJSONObject("user") else o
+    new User(root.getInt("id"),
+      root.getString("name"),
+      root.getString("login"),
+      root.getString("email"))
   }
 }
 

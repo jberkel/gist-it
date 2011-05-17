@@ -46,8 +46,7 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity {
             resp.getStatusLine.getStatusCode match {
               case 200 =>
                 val json:String = resp.getEntity
-                log("got " + json)
-                val user = User.fromJSON(new JSONObject(json).getJSONObject("user"))
+                val user = User.fromJSON(new JSONObject(json))
                 handler.post {
                   setAccountAuthenticatorResult(
                     addAccount(user.login, token,
