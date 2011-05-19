@@ -66,7 +66,7 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity {
 
       override def onPageFinished(view: WebView, url: String) {
         super.onPageFinished(view, url)
-        progress.hide()
+        progress.dismiss()
       }
     })
 
