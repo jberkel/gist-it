@@ -10,6 +10,11 @@ trait Logger {
     def warn(msg: String) {
         Log.w("send-to-gist", msg)
     }
+
+    def warn(msg: String, e:Exception) {
+        Log.w("send-to-gist", msg, e)
+    }
+
 }
 
 trait StdoutLogger extends Logger {

@@ -4,17 +4,20 @@ import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.client.methods._
 import collection.mutable.ListBuffer
 import org.apache.http.client.utils.URLEncodedUtils
-import org.apache.http.entity.StringEntity
 import java.net.URI
 import android.app.Activity
-import org.apache.http.message.BasicNameValuePair
-import org.apache.http.NameValuePair
 import com.zegoggles.github.Implicits._
 import android.accounts.{AccountManager, Account}
-import org.json.JSONObject
-import android.content.Context
 import java.lang.Boolean
-import org.apache.commons.logging.Log
+import android.net.http.AndroidHttpClient
+import org.apache.http.client.HttpClient
+import android.content.Context
+import android.content.pm.PackageManager
+import org.apache.http.params.HttpConnectionParams
+import org.json.JSONObject
+import org.apache.http.NameValuePair
+import org.apache.http.message.{BasicHeader, BasicNameValuePair}
+import org.apache.http.entity.StringEntity
 
 case class Exchange(code: String)
 
@@ -45,28 +48,23 @@ class Request(val url: String) extends  Logger {
     this
   }
 
-  def body(b: String): Request = {
-    body = Some(b); this
-  }
-
+  def body(b: String): Request    = { body = Some(b); this }
+  def body(j: JSONObject):Request = body(j.toString)
   def queryString = URLEncodedUtils.format(params, "UTF-8")
 
   def toURI = URI.create(url + (if (params.isEmpty) "" else "?" + queryString))
 
-  def toReq[T <: HttpRequestBase](r: Class[T]): T = {
+  def toHTTPRequest[T <: HttpRequestBase](r: Class[T]): T = {
     val req = r.newInstance
-    req match {
+    req.setURI(req match {
       case e: HttpEntityEnclosingRequestBase =>
-        if (body.isDefined) {
-          e.setEntity(new StringEntity(body.get))
-          req.setURI(toURI)
-        } else if (!params.isEmpty) {
+        e.setEntity(new StringEntity(body.getOrElse {
           e.setHeader("Content-Type", "application/x-www-form-urlencoded")
-          e.setEntity(new StringEntity(queryString))
-          req.setURI(URI.create(url))
-        }
-      case _ => req.setURI(toURI)
-    }
+          queryString
+        }))
+        URI.create(url)
+      case _ => toURI
+    })
     req
   }
 }
@@ -107,10 +105,8 @@ class Api(val client_id: String, val client_secret: String, val redirect_uri: St
   def put(req: Request) = execute(req, classOf[HttpPut])
   def post(req: Request) = execute(req, classOf[HttpPost])
 
-  def execute[T <: HttpRequestBase](req: Request, reqClass: Class[T]) = {
-    token.map(t => req.add("access_token", t.access))
-    client.execute(req.toReq(reqClass))
-  }
+  def execute[T <: HttpRequestBase](req: Request, reqClass: Class[T]) =
+    client.execute(withAuthHeader(req.toHTTPRequest(reqClass)))
 
   def exchangeToken(code: String): Option[Token] = {
     val resp = post(Request("https://github.com/login/oauth/access_token",
@@ -127,7 +123,11 @@ class Api(val client_id: String, val client_secret: String, val redirect_uri: St
     }
   }
 
-  def makeClient = new DefaultHttpClient()
+  def withAuthHeader(req:HttpUriRequest) = {
+    token.map(t => req.addHeader(new BasicHeader("Authorization", "token "+t.access)))
+    req
+  }
+  def makeClient:HttpClient = new DefaultHttpClient()
 }
 
 trait ApiActivity extends Activity with TokenHolder {
@@ -136,20 +136,24 @@ trait ApiActivity extends Activity with TokenHolder {
 
 trait TokenHolder extends Context {
   lazy val accountType = getString(R.string.account_type)
-
-  def account: Option[Account] =
-    AccountManager.get(this).getAccountsByType(accountType).headOption
-
-  def token: Option[Token] = {
-    account.map(a => Token(AccountManager.get(this).getPassword(a)))
-  }
+  def account: Option[Account] = AccountManager.get(this).getAccountsByType(accountType).headOption
+  def token: Option[Token] = account.map(a => Token(AccountManager.get(this).getPassword(a)))
 }
 
 trait ApiHolder extends TokenHolder {
+  lazy val info = getPackageManager.getPackageInfo(getClass.getPackage.getName, PackageManager.GET_META_DATA)
+  lazy val userAgent = getPackageManager.getApplicationLabel(info.applicationInfo)+" ("+info.versionName+")"
+
   lazy val api = new Api(
     "4d483ec8f7deecf9c6f3",
     "5aa049fafde02f0fdebe52809722b3b894ea7ed2",
     "http://zegoggl.es/oauth/send-to-gist",
     token
-  )
+  ) {
+    override def makeClient = {
+      val client = AndroidHttpClient.newInstance(userAgent, ApiHolder.this)
+      HttpConnectionParams.setConnectionTimeout(client.getParams, 10 * 1000);
+      client
+    }
+  }
 }

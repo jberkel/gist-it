@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:orientation="vertical">>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content">
+
+
+        <TextView android:id="@+id/public_text"
+                  android:layout_height="wrap_content"
+                  android:layout_width="wrap_content"
+                  android:layout_centerVertical="true"
+                  android:paddingLeft="5dip"
+                  android:text="Public"
+                />
+
+        <CheckBox android:id="@+id/public_gist"
+              android:layout_height="wrap_content"
+              android:layout_width="wrap_content"
+              android:layout_toRightOf="@+id/public_text"
+              android:checked="true"/>
+
+        <EditText android:id="@+id/description"
+                  android:layout_toRightOf="@+id/public_gist"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:hint="Description"
+                  android:imeOptions="actionDone"/>
+    </RelativeLayout>
+
+    <Button android:id="@+id/ok"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Upload"
+            />
+</LinearLayout>
