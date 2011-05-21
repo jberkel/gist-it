@@ -71,7 +71,7 @@ class Request(val url: String) extends  Logger {
 
 object Api {
   def map2Json(m: Map[String, Any]): JSONObject = {
-    val obj: JSONObject = new JSONObject();
+    val obj: JSONObject = new JSONObject()
     for ((k, v) <- m) {
       obj.put(k, v match {
         case m: Map[String, Any] => map2Json(m)
@@ -152,7 +152,7 @@ trait ApiHolder extends TokenHolder {
   ) {
     override def makeClient = {
       val client = AndroidHttpClient.newInstance(userAgent, ApiHolder.this)
-      HttpConnectionParams.setConnectionTimeout(client.getParams, 10 * 1000);
+      HttpConnectionParams.setConnectionTimeout(client.getParams, 10 * 1000)
       client
     }
   }

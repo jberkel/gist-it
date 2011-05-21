@@ -19,7 +19,7 @@ class AuthenticatorService extends Service {
 
     class GithubAuthenticator(val context: Context) extends AbstractAccountAuthenticator(context) {
         def addAccount(resp: AccountAuthenticatorResponse, acctype: String, tokenType: String, features: Array[String], options: Bundle) = {
-            val reply = new Bundle();
+            val reply = new Bundle()
             val intent = (new Intent(context, classOf[Login]))
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 .putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, resp)

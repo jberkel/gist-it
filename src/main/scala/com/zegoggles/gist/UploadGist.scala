@@ -124,7 +124,7 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
   def copyToClipboard(c: CharSequence) {
     getSystemService(Context.CLIPBOARD_SERVICE)
       .asInstanceOf[ClipboardManager]
-      .setText(c);
+      .setText(c)
   }
 
   def onUiThread(f: => Unit) {

@@ -15,21 +15,21 @@ import android.text.TextUtils
 import org.apache.http.HttpStatus
 
 class Login extends AccountAuthenticatorActivity with Logger with ApiActivity with TypedActivity {
-  val handler = new Handler();
+  val handler = new Handler()
   lazy val view = findView(TR.webview)
 
   override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.login)
 
-    view.getSettings.setDefaultZoom(ZoomDensity.FAR);
+    view.getSettings.setDefaultZoom(ZoomDensity.FAR)
     view.getSettings.setJavaScriptEnabled(true)
     view.getSettings.setBlockNetworkImage(false)
     view.getSettings.setLoadsImagesAutomatically(true)
 
-    val progress = new ProgressDialog(this);
+    val progress = new ProgressDialog(this)
     progress.setMessage(getString(R.string.loading_login))
-    progress.setIndeterminate(false);
+    progress.setIndeterminate(false)
 
     view.setWebViewClient(new LoggingWebViewClient() {
       override def shouldOverrideUrlLoading(view: WebView, url: String) = {
@@ -93,7 +93,7 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
     val account = new Account(name, accountType)
     val am = AccountManager.get(this)
     am.addAccountExplicitly(account, token.access, null)
-    am.setAuthToken(account, "access", token.access);
+    am.setAuthToken(account, "access", token.access)
     for ((k, v) <- data) am.setUserData(account, k, v)
     val b = new Bundle()
     b.putString(AccountManager.KEY_ACCOUNT_NAME, name)
@@ -112,8 +112,8 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
   }
 
   def removeAllCookies() {
-    CookieSyncManager.createInstance(this);
-    CookieManager.getInstance().removeAllCookie();
+    CookieSyncManager.createInstance(this)
+    CookieManager.getInstance().removeAllCookie()
   }
 
   def isConnected = {
@@ -123,7 +123,7 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
   }
 
   override def onDestroy() {
-    view.stopLoading();
+    view.stopLoading()
     super.onDestroy()
   }
 }
