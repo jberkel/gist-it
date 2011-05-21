@@ -1,4 +1,4 @@
-package com.zegoggles.github
+package com.zegoggles.gist
 
 import android.graphics.Bitmap
 import android.accounts.{Account, AccountManager, AccountAuthenticatorActivity}
@@ -6,7 +6,7 @@ import android.webkit._
 import java.lang.String
 import android.os.{Handler, Bundle}
 import actors.Futures
-import com.zegoggles.github.Implicits._
+import Implicits._
 import android.webkit.WebSettings.ZoomDensity
 import android.app.{AlertDialog, ProgressDialog}
 import android.content.Context

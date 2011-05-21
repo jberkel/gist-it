@@ -1,4 +1,4 @@
-package com.zegoggles.github
+package com.zegoggles.gist
 
 class App extends android.app.Application with Logger with ApiHolder
 object App {

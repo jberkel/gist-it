@@ -1,7 +1,7 @@
-package com.zegoggles.github
+package com.zegoggles.gist
+import Implicits._
 
 import android.os.Bundle
-import com.zegoggles.github.Implicits._
 import java.lang.Boolean
 import android.view.{KeyEvent, View}
 import android.view.inputmethod.EditorInfo

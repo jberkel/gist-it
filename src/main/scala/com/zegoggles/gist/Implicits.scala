@@ -1,4 +1,4 @@
-package com.zegoggles.github
+package com.zegoggles.gist
 
 import org.apache.http.HttpEntity
 import io.Source

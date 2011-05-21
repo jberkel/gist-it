@@ -1,4 +1,4 @@
-package com.zegoggles.github
+package com.zegoggles.gist
 
 import android.util.Log
 

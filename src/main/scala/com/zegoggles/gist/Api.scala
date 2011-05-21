@@ -1,4 +1,4 @@
-package com.zegoggles.github
+package com.zegoggles.gist
 
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.client.methods._
@@ -6,7 +6,7 @@ import collection.mutable.ListBuffer
 import org.apache.http.client.utils.URLEncodedUtils
 import java.net.URI
 import android.app.Activity
-import com.zegoggles.github.Implicits._
+import Implicits._
 import android.accounts.{AccountManager, Account}
 import java.lang.Boolean
 import android.net.http.AndroidHttpClient
