@@ -3,18 +3,13 @@ package com.zegoggles.github
 import android.util.Log
 
 trait Logger {
-    def log(msg: String) {
-        Log.d("send-to-gist", msg)
+  def log(msg: String) { Log.d(App.TAG, msg) }
+  def warn(msg: String, e:Exception*) {
+      if (e.isEmpty)
+        Log.w(App.TAG, msg)
+      else
+        Log.w(App.TAG, msg, e.headOption.get)
     }
-
-    def warn(msg: String) {
-        Log.w("send-to-gist", msg)
-    }
-
-    def warn(msg: String, e:Exception) {
-        Log.w("send-to-gist", msg, e)
-    }
-
 }
 
 trait StdoutLogger extends Logger {
@@ -22,8 +17,7 @@ trait StdoutLogger extends Logger {
         System.err.println(msg)
     }
 
-    override def warn(msg: String) {
+    override def warn(msg: String, e:Exception*) {
         System.err.println(msg)
     }
-
 }

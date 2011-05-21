@@ -5,39 +5,48 @@ import com.zegoggles.github.Implicits._
 import java.lang.Boolean
 import android.view.{KeyEvent, View}
 import android.view.inputmethod.EditorInfo
-import android.app.{ProgressDialog, Activity}
-import android.widget.{Toast, EditText, CheckBox}
+import android.widget.Toast
 import actors.Futures
-import android.text.ClipboardManager
-import android.content.{Context, Intent}
 import java.io.IOException
 import scala.Either
 import org.apache.http.{HttpResponse, HttpStatus}
 import android.net.Uri
+import android.text.{TextUtils, ClipboardManager}
+import android.app.{AlertDialog, ProgressDialog, Activity}
+import android.content.{Context, Intent}
 
-class UploadGist extends Activity with Logger with ApiActivity {
-    override def onCreate(savedInstanceState: Bundle) {
+class UploadGist extends Activity with Logger with ApiActivity with TypedActivity {
+
+  override def onCreate(savedInstanceState: Bundle) {
     super.onCreate(savedInstanceState)
-
     setContentView(R.layout.upload_gist)
 
-    val intent = getIntent
-    if (intent != null) {
-      val text = intent.getStringExtra("android.intent.extra.TEXT")
-      val public: CheckBox = findViewById(R.id.public_gist).asInstanceOf[CheckBox]
-      val description: EditText = findViewById(R.id.description).asInstanceOf[EditText]
+    val bg = getResources.getDrawable(R.drawable.octocat_bg)
+    bg.setAlpha(15)
+    findView(TR.upload_root).setBackgroundDrawable(bg)
 
-      description.setOnEditorActionListener((v:View, id:Int, e:KeyEvent) =>
-        if (id == EditorInfo.IME_ACTION_DONE || 
-           (e.getKeyCode == KeyEvent.KEYCODE_ENTER && e.getAction == KeyEvent.ACTION_DOWN))
-          findViewById(R.id.ok).performClick()
-        else false)
+    val (public, description, content) = (findView(TR.public_gist), findView(TR.description), findView(TR.content))
+    content.setText(textFromIntent(getIntent))
+    content.setOnEditorActionListener((v: View, id: Int, e: KeyEvent) =>
+      if (id == EditorInfo.IME_ACTION_DONE ||
+        (e.getKeyCode == KeyEvent.KEYCODE_ENTER && e.getAction == KeyEvent.ACTION_DOWN))
+        findViewById(R.id.upload_btn).performClick()
+      else false)
 
-      findViewById(R.id.ok).setOnClickListener { v: View =>
-          account.map(a =>
-              upload(a.name, public.isChecked, description.getText.toString, text)
-          )
-      }
+    findViewById(R.id.upload_btn).setOnClickListener { v: View =>
+        account.map { a =>
+          val doUpload = () => upload(a.name, public.isChecked, description, content)
+          if (!TextUtils.isEmpty(content))
+            doUpload()
+          else
+            new AlertDialog.Builder(this)
+              .setTitle(R.string.empty_gist_title)
+              .setMessage(R.string.empty_gist)
+              .setIcon(android.R.drawable.ic_dialog_alert)
+              .setPositiveButton(android.R.string.ok, doUpload)
+              .setNegativeButton(android.R.string.cancel, ()=>())
+              .show()
+        }
     }
   }
 
@@ -53,45 +62,64 @@ class UploadGist extends Activity with Logger with ApiActivity {
     progress.show()
 
     executeAsync(api.post(_),
-        Request("https://api.github.com/users/" + user + "/gists").body(params),
-        HttpStatus.SC_CREATED)
-      { success =>
+      Request("https://api.github.com/users/" + user + "/gists").body(params),
+      HttpStatus.SC_CREATED) {
+      success =>
         val gistUrl = success.getFirstHeader("Location").getValue
         log("created: " + gistUrl)
         copyToClipboard(makePublicUrl(gistUrl))
         progress.dismiss()
         setResult(Activity.RESULT_OK, new Intent().putExtra("location", gistUrl))
         finish()
+    } {
+      error => error match {
+        case Left(exception) => warn("error", exception)
+        case Right(resp) => warn("unexpected status code: " + resp.getStatusLine)
       }
-      { error => error match {
-          case Left(exception) => warn("error", exception)
-          case Right(resp)     => warn("status code: " + resp.getStatusLine)
-        }
-        progress.dismiss()
-        Toast.makeText(this, "Uploading failed", Toast.LENGTH_LONG).show()
-        finish()
-      }
+      progress.dismiss()
+      Toast.makeText(this, R.string.uploading_failed, Toast.LENGTH_LONG).show()
+      finish()
+    }
   }
 
   def executeAsync(call: Request => HttpResponse, req: Request, expected: Int)
-        (success: HttpResponse => Any)
-        (error:   Either[IOException,HttpResponse] => Any) {
+                  (success: HttpResponse => Any)
+                  (error: Either[IOException, HttpResponse] => Any) {
     Futures.future {
       try {
         val resp = call(req)
-
         resp.getStatusLine.getStatusCode match {
-          case code if code == expected  => onUiThread { success(resp) }
-          case other                     => onUiThread { error(Right(resp)) }
+          case code if code == expected => onUiThread { success(resp)}
+          case other => onUiThread { error(Right(resp))}
         }
       } catch {
-        case e:IOException => onUiThread { error(Left(e)) }
+        case e: IOException => onUiThread { error(Left(e)) }
       }
     }
   }
 
-  def makePublicUrl(s: String): CharSequence =
-    "https://gist.github.com/"+Uri.parse(s).getLastPathSegment
+  def textFromIntent(intent: Intent):String = {
+    if (intent == null)
+        ""
+    else if (intent.hasExtra(Intent.EXTRA_TEXT))
+        intent.getStringExtra(Intent.EXTRA_TEXT)
+    else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
+        val uri:Uri = intent getParcelableExtra(Intent.EXTRA_STREAM)
+        log("fromIntent(uri="+uri+")")
+        try {
+          io.Source.fromInputStream(
+            getContentResolver.openAssetFileDescriptor(uri, "r").createInputStream())
+          .getLines().mkString
+        } catch {
+          case e:SecurityException =>
+            Toast.makeText(this,
+              getString(R.string.security_exception), Toast.LENGTH_LONG).show()
+          ""
+        }
+    } else ""
+  }
+
+  def makePublicUrl(s: String) = "https://gist.github.com/" + Uri.parse(s).getLastPathSegment
 
   def copyToClipboard(c: CharSequence) {
     getSystemService(Context.CLIPBOARD_SERVICE)

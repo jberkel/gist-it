@@ -15,9 +15,9 @@ import android.content.Context
 import android.content.pm.PackageManager
 import org.apache.http.params.HttpConnectionParams
 import org.json.JSONObject
-import org.apache.http.NameValuePair
 import org.apache.http.message.{BasicHeader, BasicNameValuePair}
 import org.apache.http.entity.StringEntity
+import org.apache.http.{HttpStatus, NameValuePair}
 
 case class Exchange(code: String)
 
@@ -91,7 +91,7 @@ object Api {
       fields <- s.split('&').map(s => s.split('='))
       if (fields(0) == "access_token")
     ) yield (fields(1))
-    token.headOption.map(t => Token(t))
+    token.headOption.map(Token(_))
   }
 }
 
@@ -116,7 +116,7 @@ class Api(val client_id: String, val client_secret: String, val redirect_uri: St
       "redirect_uri" -> redirect_uri))
 
     resp.getStatusLine.getStatusCode match {
-      case 200 =>
+      case HttpStatus.SC_OK =>
         token = Api.parseTokenResponse(resp.getEntity)
         token
       case _ => log("Invalid status code " + resp.getStatusLine); None

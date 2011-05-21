@@ -1,4 +1,24 @@
 <resources>
     <string name="app_name">gist</string>
     <string name="account_type">com.zegoggles.github</string>
+    <string name="loading_login">Loading</string>
+    <string name="upload">Gist it</string>
+    <string name="public_gist">Public</string>
+    <string name="description">Description</string>
+    <string name="public_gist_summary">Make this gist visible to everybody</string>
+    <string name="content">Content</string>
+    <string name="empty_gist_title">Empty</string>
+    <string name="empty_gist">The gist is empty. Are you sure you want to upload it?</string>
+
+    <string name="security_exception">Error accessing content (permission denied)</string>
+    <string name="uploading_failed">Uploading failed"</string>
+    <string name="login_error_no_connection_message">Error while connecting</string>
+    <string name="help">The URL of the newly created gist will be available in the clipboard after a successful upload.</string>
+
+    <string name="what_is_gist"><b>Gist</b> is a simple way to <b>share snippets and pastes</b> with others.
+        All gists are git repositories, so they are automatically <b>versioned, forkable</b> and usable
+        as a <b>git repository</b>.
+        <br/>
+        See <a href="http://gist.github.com">gist.github.com</a> for more information.
+    </string>
 </resources>

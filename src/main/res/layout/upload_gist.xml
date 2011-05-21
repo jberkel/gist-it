@@ -1,40 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
-              android:orientation="vertical">>
+                android:id="@+id/upload_root"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="vertical">
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <ScrollView
+        android:layout_weight="1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                          android:id="@+id/first"
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:minHeight="?android:attr/listPreferredItemHeight"
+                          android:gravity="center_vertical"
+                          android:paddingRight="?android:attr/scrollbarSize">
+
+                <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="20dip"
+                        android:layout_marginRight="6dip"
+                        android:layout_marginTop="6dip"
+                        android:layout_marginBottom="6dip"
+                        android:layout_weight="1">
+
+                    <TextView android:id="@+id/title"
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:singleLine="true"
+                              android:textAppearance="?android:attr/textAppearanceLarge"
+                              android:ellipsize="marquee"
+                              android:fadingEdge="horizontal"
+                              android:text="@string/public_gist"/>
+
+                    <TextView android:id="@+id/summary"
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:layout_below="@+id/title"
+                              android:layout_alignLeft="@android:id/title"
+                              android:textAppearance="?android:attr/textAppearanceSmall"
+                              android:maxLines="2"
+                              android:textColor="?android:attr/textColorSecondary"
+                              android:text="@string/public_gist_summary"/>
+                </RelativeLayout>
+
+                <CheckBox android:id="@+id/public_gist"
+                          android:layout_height="wrap_content"
+                          android:layout_width="wrap_content"
+                          android:gravity="center_vertical"
+                          android:checked="true"/>
+            </LinearLayout>
+
+            <EditText android:id="@+id/description"
+                      android:layout_width="fill_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_below="@+id/first"
+                      android:layout_marginLeft="20dip"
+                      android:layout_marginRight="20dip"
+                      android:layout_marginTop="6dip"
+                      android:layout_marginBottom="6dip"
+                      android:gravity="top"
+                      android:minLines="2"
+                      android:background="@color/light_transparent"
+                      android:hint="@string/description"
+                      android:imeOptions="actionNext"/>
+
+            <EditText android:id="@+id/content"
+                      android:layout_width="fill_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_below="@+id/description"
+                      android:layout_marginLeft="20dip"
+                      android:layout_marginRight="20dip"
+                      android:layout_marginTop="6dip"
+                      android:layout_marginBottom="6dip"
+                      android:gravity="top"
+                      android:minLines="4"
+                      android:maxLines="6"
+                      android:background="@color/light_transparent"
+                      android:hint="@string/content"
+                      android:imeOptions="actionDone"/>
+
+            <TextView android:id="@+id/help"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_width="wrap_content">
+                android:layout_below="@+id/content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="?android:attr/textColorSecondary"
+                android:layout_marginLeft="20dip"
+                android:text="@string/help"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/help"
+                android:layout_marginTop="6dip"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="?android:attr/textColorSecondary"
+                android:layout_marginLeft="20dip"
+                android:autoLink="web"
+                android:text="@string/what_is_gist"/>
+        </RelativeLayout>
 
-        <TextView android:id="@+id/public_text"
-                  android:layout_height="wrap_content"
-                  android:layout_width="wrap_content"
-                  android:layout_centerVertical="true"
-                  android:paddingLeft="5dip"
-                  android:text="Public"
-                />
+    </ScrollView>
 
-        <CheckBox android:id="@+id/public_gist"
-              android:layout_height="wrap_content"
-              android:layout_width="wrap_content"
-              android:layout_toRightOf="@+id/public_text"
-              android:checked="true"/>
-
-        <EditText android:id="@+id/description"
-                  android:layout_toRightOf="@+id/public_gist"
-                  android:layout_width="fill_parent"
-                  android:layout_height="wrap_content"
-                  android:hint="Description"
-                  android:imeOptions="actionDone"/>
-    </RelativeLayout>
-
-    <Button android:id="@+id/ok"
-            android:layout_width="wrap_content"
+    <RelativeLayout
             android:layout_height="wrap_content"
-            android:text="Upload"
-            />
+            android:layout_width="fill_parent"
+            android:layout_alignParentBottom="true"
+            android:background="@color/background">
+        <LinearLayout android:paddingBottom="5dip"
+                      android:orientation="horizontal"
+                      android:layout_width="fill_parent"
+                      android:layout_height="wrap_content"
+                      android:paddingTop="5dip"
+                      android:layout_marginTop="5dip">
+
+            <Button android:id="@+id/upload_btn"
+                    android:text="@string/upload"
+                    android:layout_weight="1"
+                    android:layout_width="fill_parent"
+                    android:layout_marginLeft="15dip"
+                    android:layout_marginRight="10dip"
+                    android:layout_height="fill_parent"/>
+        </LinearLayout>
+
+        <View android:layout_width="fill_parent"
+              android:layout_height="5dip"
+              android:background="@drawable/drop_shadow_down"/>
+    </RelativeLayout>
 </LinearLayout>
