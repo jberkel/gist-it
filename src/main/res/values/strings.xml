@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">gist</string>
-    <string name="account_type">com.zegoggles.github</string>
+    <string name="account_type">com.zegoggles.gist</string>
     <string name="loading_login">Loading</string>
     <string name="upload">Gist it</string>
     <string name="uploading">Uploading</string>
