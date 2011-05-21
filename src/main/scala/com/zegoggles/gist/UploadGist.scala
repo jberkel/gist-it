@@ -62,7 +62,7 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
     progress.show()
 
     executeAsync(api.post(_),
-      Request("https://api.github.com/users/" + user + "/gists").body(params),
+      Request("https://api.github.com/users/"+user+"/gists").body(params),
       HttpStatus.SC_CREATED) {
       success =>
         val gistUrl = success.getFirstHeader("Location").getValue

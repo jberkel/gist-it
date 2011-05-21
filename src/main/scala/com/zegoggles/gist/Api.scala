@@ -18,11 +18,9 @@ import org.json.JSONObject
 import org.apache.http.message.{BasicHeader, BasicNameValuePair}
 import org.apache.http.entity.StringEntity
 import org.apache.http.{HttpStatus, NameValuePair}
-
-case class Exchange(code: String)
+import java.io.IOException
 
 case class Token(access: String)
-
 object Request {
   def apply(s: String, p: (String, String)*) = {
     val request = new Request(s)
@@ -88,7 +86,7 @@ object Api {
   def parseTokenResponse(s: String): Option[Token] = {
     //"access_token=807e750b891b3fc47b0c951b4c11c0b610195b73&token_type=bearer"
     val token = for (
-      fields <- s.split('&').map(s => s.split('='))
+      fields <- s.split('&').map(_.split('='))
       if (fields(0) == "access_token")
     ) yield (fields(1))
     token.headOption.map(Token(_))
@@ -107,6 +105,7 @@ class Api(val client_id: String, val client_secret: String, val redirect_uri: St
 
   def execute[T <: HttpRequestBase](req: Request, reqClass: Class[T]) =
     client.execute(withAuthHeader(req.toHTTPRequest(reqClass)))
+
 
   def exchangeToken(code: String): Option[Token] = {
     val resp = post(Request("https://github.com/login/oauth/access_token",

@@ -13,6 +13,7 @@ import android.content.Context
 import android.net.{ConnectivityManager, Uri}
 import android.text.TextUtils
 import org.apache.http.HttpStatus
+import java.io.IOException
 
 class Login extends AccountAuthenticatorActivity with Logger with ApiActivity with TypedActivity {
   val handler = new Handler()
@@ -68,25 +69,26 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
   }
 
   def exchangeToken(code: String) {
-    api.exchangeToken(code).map {
-        token =>
+    try api.exchangeToken(code).map { token =>
           log("successfully exchanged code for access token " + token)
-          val resp = api.get("https://github.com/api/v2/json/user/show")
-          resp.getStatusLine.getStatusCode match {
-            case HttpStatus.SC_OK =>
-              User.fromJSON(resp.getEntity).map { user =>
-                handler.post {
-                  setAccountAuthenticatorResult(
-                    addAccount(user.login, token,
-                      "id" -> user.id.toString,
-                      "name" -> user.name,
-                      "email" -> user.email))
-                  finish()
+            val resp = api.get("https://github.com/api/v2/json/user/show")
+            resp.getStatusLine.getStatusCode match {
+              case HttpStatus.SC_OK =>
+                User.fromJSON(resp.getEntity).map { user =>
+                  handler.post {
+                    setAccountAuthenticatorResult(
+                      addAccount(user.login, token,
+                        "id" -> user.id.toString,
+                        "name" -> user.name,
+                        "email" -> user.email))
+                    finish()
+                  }
                 }
-              }
-            case c => log("invalid status ("+c+") "+resp.getStatusLine)
-          }
-      }
+              case c => log("invalid status ("+c+") "+resp.getStatusLine)
+              /* TODO: handle */
+            }
+        }
+    catch { case e:IOException => warn("error", e) /* TODO: handle */ }
   }
 
   def addAccount(name: String, token: Token, data: (String, String)*): Bundle = {
