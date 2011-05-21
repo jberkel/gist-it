@@ -3,6 +3,7 @@
     <string name="account_type">com.zegoggles.github</string>
     <string name="loading_login">Loading</string>
     <string name="upload">Gist it</string>
+    <string name="uploading">Uploading</string>
     <string name="public_gist">Public</string>
     <string name="description">Description</string>
     <string name="public_gist_summary">Make this gist visible to everybody</string>

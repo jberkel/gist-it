@@ -58,25 +58,30 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
 
     val progress = new ProgressDialog(this)
     progress.setIndeterminate(true)
-    progress.setMessage("Uploading...")
+    progress.setMessage(getString(R.string.uploading))
     progress.show()
 
     executeAsync(api.post(_),
       Request("https://api.github.com/users/"+user+"/gists").body(params),
       HttpStatus.SC_CREATED) {
       success =>
+        progress.dismiss()
+
         val gistUrl = success.getFirstHeader("Location").getValue
         log("created: " + gistUrl)
-        copyToClipboard(makePublicUrl(gistUrl))
-        progress.dismiss()
-        setResult(Activity.RESULT_OK, new Intent().putExtra("location", gistUrl))
+        val publicUrl = makePublicUrl(gistUrl)
+        copyToClipboard(publicUrl)
+        setResult(Activity.RESULT_OK, new Intent()
+            .putExtra("location", gistUrl)
+            .putExtra("url", publicUrl))
         finish()
     } {
+      progress.dismiss()
+
       error => error match {
         case Left(exception) => warn("error", exception)
         case Right(resp) => warn("unexpected status code: " + resp.getStatusLine)
       }
-      progress.dismiss()
       Toast.makeText(this, R.string.uploading_failed, Toast.LENGTH_LONG).show()
       finish()
     }
