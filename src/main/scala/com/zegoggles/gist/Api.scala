@@ -161,6 +161,9 @@ trait TokenHolder extends Context {
   lazy val accountType = getString(R.string.account_type)
   def account: Option[Account] = AccountManager.get(this).getAccountsByType(accountType).headOption
   def token: Option[Token] = account.map(a => Token(AccountManager.get(this).getPassword(a)))
+
+  def addAccount(a:Activity) =
+    AccountManager.get(this).addAccount(accountType, "access_token", null, null, a, null, null)
 }
 
 trait ApiHolder extends TokenHolder {

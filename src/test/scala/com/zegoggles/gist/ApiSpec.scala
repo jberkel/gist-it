@@ -17,6 +17,7 @@ class ApiSpec extends Specification {
 
       "generate JSON from a Scala Map structure" in {
         val input = Map("foo"->"bar", "bool"->true, "int"->10,  "baz"->Map("buu"->"hello"),"double"->10.44d)
+
         """{"baz":{"buu":"hello"},"int":10,"foo":"bar","bool":true,"double":10.44}""" must
           be equalTo Api.map2Json(input).toString
       }

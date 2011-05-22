@@ -20,7 +20,11 @@
 
     <string name="anon_upload">
         There is currently no registered gist account so the content will be uploaded anonymously.
-        Set up an account to post authenticated gists.
+        %s to post authenticated gists.
+    </string>
+
+    <string name="set_up_an_account">
+        Set up an account
     </string>
 
     <string name="what_is_gist"><b>Gist</b> is a simple way to <b>share snippets and pastes</b> with others.
@@ -29,4 +33,6 @@
         <br/>
         See <a href="https://gist.github.com">gist.github.com</a> for more information.
     </string>
+
+    <string name="replace">Replace gist</string>
 </resources>

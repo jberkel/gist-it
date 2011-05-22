@@ -21,6 +21,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name="GistList"/>
 
         <service android:name="AuthenticatorService"
                  android:exported="true"

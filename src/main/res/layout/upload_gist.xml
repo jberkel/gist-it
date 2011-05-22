@@ -136,13 +136,23 @@
                       android:paddingTop="5dip"
                       android:layout_marginTop="5dip">
 
+            <Button android:id="@+id/replace_btn"
+                    android:text="@string/replace"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:layout_marginLeft="15dip"
+                    android:layout_marginRight="10dip"
+                    />
+
             <Button android:id="@+id/upload_btn"
                     android:text="@string/upload"
                     android:layout_weight="1"
-                    android:layout_width="fill_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
                     android:layout_marginLeft="15dip"
                     android:layout_marginRight="10dip"
-                    android:layout_height="fill_parent"/>
+                    />
         </LinearLayout>
 
         <View android:layout_width="fill_parent"

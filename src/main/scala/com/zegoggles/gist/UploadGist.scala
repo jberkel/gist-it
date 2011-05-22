@@ -11,7 +11,6 @@ import android.net.Uri
 import android.text.{TextUtils, ClipboardManager}
 import android.app.{AlertDialog, ProgressDialog, Activity}
 import android.content.{Intent, Context}
-import android.accounts.AccountManager
 
 class UploadGist extends Activity with Logger with ApiActivity with TypedActivity {
 
@@ -45,8 +44,12 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
             .show()
     }
 
-    Utils.clickify(findView(TR.anon), "Set up an account",
-      AccountManager.get(this).addAccount(accountType, "access_token", null, null, this, null, null))
+    findView(TR.replace_btn).setOnClickListener { v:View =>
+      startActivityForResult(new Intent(this, classOf[GistList]), 0)
+    }
+
+    findView(TR.anon).setText(getString(R.string.anon_upload, getString(R.string.set_up_an_account)))
+    Utils.clickify(findView(TR.anon), getString(R.string.set_up_an_account), addAccount(this))
   }
 
   override def onResume() {
@@ -118,5 +121,12 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
     getSystemService(Context.CLIPBOARD_SERVICE)
       .asInstanceOf[ClipboardManager]
       .setText(c)
+  }
+
+  override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+    if (resultCode == Activity.RESULT_OK) {
+      val id = data.getLongExtra("id",-1)
+      Toast.makeText(this, "Gist " +id+ " selected", Toast.LENGTH_LONG).show()
+    }
   }
 }
