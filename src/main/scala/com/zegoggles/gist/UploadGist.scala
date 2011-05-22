@@ -51,7 +51,7 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
 
   override def onResume() {
     super.onResume()
-    if (account.isDefined) findView(TR.anon).setVisibility(View.GONE)
+    findView(TR.anon).setVisibility(if (account.isDefined) View.GONE else View.VISIBLE)
   }
 
   def upload(public: Boolean, description: String, content: String) {

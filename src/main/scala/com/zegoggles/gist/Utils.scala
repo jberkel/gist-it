@@ -7,6 +7,10 @@ import android.text.style.ClickableSpan
 import android.text.{SpannableString, Spanned, Spannable}
 
 object Utils {
+  /**
+   * Adapted from the {@link android.text.util.Linkify} class. Changes the
+   * first instance of {@code link} into a clickable link attached to the given function.
+   */
   def clickify(v: TextView, clickableText: String, listener: => Unit):Boolean = {
     val text = v.getText
     val string = text.toString
