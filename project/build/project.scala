@@ -2,7 +2,7 @@ import sbt._
 
 trait Defaults extends BaseAndroidProject {
   def androidPlatformName = "android-8"
-  override def skipProguard = true
+  override def skipProguard = false
 }
 
 class Parent(info: ProjectInfo) extends ParentProject(info) with IdeaProject {

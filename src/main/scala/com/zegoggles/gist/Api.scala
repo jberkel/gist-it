@@ -17,8 +17,9 @@ import org.apache.http.params.HttpConnectionParams
 import org.json.JSONObject
 import org.apache.http.message.{BasicHeader, BasicNameValuePair}
 import org.apache.http.entity.StringEntity
-import org.apache.http.{HttpStatus, NameValuePair}
 import java.io.IOException
+import org.apache.http.{HttpResponse, HttpStatus, NameValuePair}
+import actors.Futures
 
 case class Token(access: String)
 object Request {
@@ -83,6 +84,7 @@ object Api {
     obj
   }
 
+
   def parseTokenResponse(s: String): Option[Token] = {
     //"access_token=807e750b891b3fc47b0c951b4c11c0b610195b73&token_type=bearer"
     val token = for (
@@ -131,6 +133,28 @@ class Api(val client_id: String, val client_secret: String, val redirect_uri: St
 
 trait ApiActivity extends Activity with TokenHolder {
   def api = getApplication.asInstanceOf[App].api
+
+  def executeAsync(call: Request => HttpResponse, req: Request, expected: Int)
+                  (success: HttpResponse => Any)
+                  (error: Either[IOException, HttpResponse] => Any) {
+
+    def onUiThread(f: => Unit) {
+      runOnUiThread(new Runnable() { def run() { f } } )
+    }
+
+    Futures.future {
+      try {
+        val resp = call(req)
+        resp.getStatusLine.getStatusCode match {
+          case code if code == expected => onUiThread { success(resp)}
+          case other => onUiThread { error(Right(resp))}
+        }
+      } catch {
+        case e: IOException => onUiThread { error(Left(e)) }
+      }
+    }
+  }
+
 }
 
 trait TokenHolder extends Context {

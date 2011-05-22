@@ -2,9 +2,11 @@
     <string name="app_name">gist</string>
     <string name="account_type">com.zegoggles.gist</string>
     <string name="loading_login">Loading</string>
+    <string name="loading_token">Authenticating</string>
     <string name="upload">Gist it</string>
     <string name="uploading">Uploading</string>
     <string name="public_gist">Public</string>
+    <string name="gist_uploaded">Gist uploaded</string>
     <string name="description">Description</string>
     <string name="public_gist_summary">Make this gist visible to everybody</string>
     <string name="content">Content</string>
@@ -15,6 +17,11 @@
     <string name="uploading_failed">Uploading failed"</string>
     <string name="login_error_no_connection_message">Error while connecting</string>
     <string name="help">The URL of the newly created gist will be available in the clipboard after a successful upload.</string>
+
+    <string name="anon_upload">
+        There is currently no registered gist account so the content will be uploaded anonymously.
+        Set up an account to post authenticated gists.
+    </string>
 
     <string name="what_is_gist"><b>Gist</b> is a simple way to <b>share snippets and pastes</b> with others.
         All gists are git repositories, so they are automatically <b>versioned, forkable</b> and usable

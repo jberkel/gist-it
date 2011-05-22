@@ -28,17 +28,14 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
     view.getSettings.setBlockNetworkImage(false)
     view.getSettings.setLoadsImagesAutomatically(true)
 
-    val progress = new ProgressDialog(this)
-    progress.setMessage(getString(R.string.loading_login))
-    progress.setIndeterminate(false)
-
+    val progress = ProgressDialog.show(this, null, getString(R.string.loading_login), false)
     view.setWebViewClient(new LoggingWebViewClient() {
       override def shouldOverrideUrlLoading(view: WebView, url: String) = {
         super.shouldOverrideUrlLoading(view, url)
         if (url.startsWith(api.redirect_uri)) {
           Uri.parse(url).getQueryParameter("code") match {
-            case code:String => Futures.future { exchangeToken(code) }
-            case _ => warn("no code found in redirect uri")
+            case code:String => exchangeToken(code)
+            case _           => warn("no code found in redirect uri")
           }
           true
         } else false
@@ -69,26 +66,32 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
   }
 
   def exchangeToken(code: String) {
-    try api.exchangeToken(code).map { token =>
+    val progress = ProgressDialog.show(this, null, getString(R.string.loading_token), false)
+    Futures.future {
+      try {
+        api.exchangeToken(code).map { token =>
           log("successfully exchanged code for access token " + token)
-            val resp = api.get("https://github.com/api/v2/json/user/show")
-            resp.getStatusLine.getStatusCode match {
-              case HttpStatus.SC_OK =>
-                User.fromJSON(resp.getEntity).map { user =>
-                  handler.post {
-                    setAccountAuthenticatorResult(
-                      addAccount(user.login, token,
-                        "id" -> user.id.toString,
-                        "name" -> user.name,
-                        "email" -> user.email))
-                    finish()
-                  }
+          val resp = api.get(Request("https://api.github.com/user", "access_token"->token.access))
+          resp.getStatusLine.getStatusCode match {
+            case HttpStatus.SC_OK =>
+              User.fromJSON(resp.getEntity).map { user =>
+                handler.post {
+                  setAccountAuthenticatorResult(
+                    addAccount(user.login, token,
+                      "id" -> user.id.toString,
+                      "name" -> user.name,
+                      "email" -> user.email))
+                  finish()
                 }
-              case c => log("invalid status ("+c+") "+resp.getStatusLine)
-              /* TODO: handle */
-            }
+              }
+            case c => log("invalid status ("+c+") "+resp.getStatusLine)
+            /* TODO: handle */
+          }
         }
-    catch { case e:IOException => warn("error", e) /* TODO: handle */ }
+      }
+      catch   { case e:IOException => warn("error", e) /* TODO: handle */ }
+      finally { handler.post { progress.dismiss() } }
+    }
   }
 
   def addAccount(name: String, token: Token, data: (String, String)*): Bundle = {
