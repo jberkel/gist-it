@@ -36,4 +36,13 @@ object Utils {
       true
     } else false
   }
+
+  def humanReadableSize(b: Long) = {
+    b match {
+      case c if c > 0 && c < 1024 => b+" bytes"
+      case c if c > 1024 && c < 1024*1024 => (b/1024).round+" kb"
+      case c if c > 1024*1024 && c < 1024*1024*1024 => (b/1024/1024).round+" mb"
+      case c  => (b/1024/1024/1024).round+" gb"
+    }
+  }
 }

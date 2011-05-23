@@ -154,7 +154,6 @@ trait ApiActivity extends Activity with TokenHolder {
       }
     }
   }
-
 }
 
 trait TokenHolder extends Context {
@@ -169,6 +168,7 @@ trait TokenHolder extends Context {
 trait ApiHolder extends TokenHolder {
   lazy val info = getPackageManager.getPackageInfo(getClass.getPackage.getName, PackageManager.GET_META_DATA)
   lazy val userAgent = getPackageManager.getApplicationLabel(info.applicationInfo)+" ("+info.versionName+")"
+  val timeout = 10 * 1000
 
   lazy val api = new Api(
     "4d483ec8f7deecf9c6f3",
@@ -178,7 +178,8 @@ trait ApiHolder extends TokenHolder {
   ) {
     override def makeClient = {
       val client = AndroidHttpClient.newInstance(userAgent, ApiHolder.this)
-      HttpConnectionParams.setConnectionTimeout(client.getParams, 10 * 1000)
+      HttpConnectionParams.setConnectionTimeout(client.getParams, timeout)
+      HttpConnectionParams.setSoTimeout(client.getParams, timeout);
       client
     }
   }

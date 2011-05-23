@@ -58,6 +58,7 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
   }
 
   def upload(public: Boolean, description: String, content: String) {
+
     val params = Map(
       "description" -> description,
       "public" -> public,
@@ -125,7 +126,7 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
     if (resultCode == Activity.RESULT_OK) {
-      val id = data.getLongExtra("id",-1)
+      val id = data.getStringExtra("id")
       Toast.makeText(this, "Gist " +id+ " selected", Toast.LENGTH_LONG).show()
     }
   }

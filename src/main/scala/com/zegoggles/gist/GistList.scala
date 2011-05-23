@@ -3,12 +3,10 @@ package com.zegoggles.gist
 import android.os.Bundle
 import android.view.{LayoutInflater, ViewGroup, View}
 import org.apache.http.HttpStatus
-import org.json.JSONArray
 import com.zegoggles.gist.Implicits._
-import collection.mutable.ListBuffer
-import android.widget.{ListView, TextView, BaseAdapter}
 import android.app.{Activity, ProgressDialog, ListActivity}
 import android.content.{Intent, Context}
+import android.widget.{Toast, ListView, TextView, BaseAdapter}
 
 class GistList extends ListActivity with ApiActivity with Logger {
   val gistAdapter = new GistAdapter()
@@ -31,27 +29,22 @@ class GistList extends ListActivity with ApiActivity with Logger {
       Request("https://api.github.com/gists"),
       HttpStatus.SC_OK) { success =>
         pd.dismiss()
-        val response:String = success.getEntity
-        // XXX make functional
-        val jsonList = new JSONArray(response)
-        val b = new ListBuffer[Gist]()
-        for (i <-  0 until jsonList.length()) {
-          b += Gist.fromJSON(jsonList.getJSONObject(i))
-        }
-        gistAdapter.setGists(Vector[Gist](b: _*))
+        JsonList(success.getEntity, Gist(_)).map(l => gistAdapter.setGists(l))
     } {
       error =>
         pd.dismiss()
         error match {
-        case Left(e)  => warn("error getting gists", e)
-        case Right(r) => warn("unexpected status code: "+r.getStatusLine)
-      }
+          case Left(e)  => warn("error getting gists", e)
+          case Right(r) => warn("unexpected status code: "+r.getStatusLine)
+        }
+        Toast.makeText(this, R.string.list_failed, Toast.LENGTH_LONG).show()
+        finish()
     }
   }
 }
 
 class GistAdapter extends BaseAdapter {
-  var gists: Vector[Gist] = Vector.empty
+  var gists: IndexedSeq[Gist] = Vector.empty
 
   def getView(position: Int, convertView: View, parent: ViewGroup) = {
     val view = if (convertView == null) {
@@ -60,19 +53,21 @@ class GistAdapter extends BaseAdapter {
     } else {
       convertView
     }
+    val gist = getItem(position)
+    if (gist.public) view.findViewById(R.id.private_gist).setVisibility(View.GONE)
     val tv: TextView  = view.findViewById(R.id.gist_id).asInstanceOf[TextView]
-    tv.setText(getItem(position).toString)
+    tv.setText(gist.describe)
     view
   }
 
-  def getItemId(position: Int) = getItem(position).id
+  def getItemId(position: Int) = getItem(position).hashCode()
   def getItem(position: Int):Gist = gists(position)
   def getCount = gists.size
 
   override def hasStableIds = true
 
-  def setGists(l: Vector[Gist]) {
-    gists = l
+  def setGists(l: Traversable[Gist]) {
+    gists = Vector[Gist](l.toSeq:_*)
     notifyDataSetChanged()
   }
 }

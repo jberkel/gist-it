@@ -6,6 +6,13 @@
               android:orientation="horizontal"
               android:padding="5dip">
 
+    <ImageView  android:id="@+id/private_gist"
+                android:src="@drawable/private_gist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+               />
+
     <TextView android:id="@+id/gist_id"
               android:textSize="24sp"
               android:layout_width="fill_parent"

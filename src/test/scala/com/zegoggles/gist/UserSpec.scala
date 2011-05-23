@@ -5,7 +5,7 @@ import org.specs2.mutable._
 class UserSpec extends Specification {
   "A user" should {
     "be parseable from JSON" in {
-      val u = User.fromJSON("""
+      val u = User("""
       {
         "user": {
           "gravatar_id": "b8dbb1987e8e5318584865f880036796",
@@ -33,7 +33,7 @@ class UserSpec extends Specification {
     }
 
     "should return None if not parseable" in {
-      User.fromJSON("bla") must beNone
+      User("bla") must beNone
     }
   }
 }

@@ -74,7 +74,7 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
           val resp = api.get(Request("https://api.github.com/user", "access_token"->token.access))
           resp.getStatusLine.getStatusCode match {
             case HttpStatus.SC_OK =>
-              User.fromJSON(resp.getEntity).map { user =>
+              User(resp.getEntity).map { user =>
                 handler.post {
                   setAccountAuthenticatorResult(
                     addAccount(user.login, token,

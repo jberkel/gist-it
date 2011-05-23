@@ -2,8 +2,8 @@ package com.zegoggles.gist
 
 import org.specs2.mutable.Specification
 
-class GistSpec  extends Specification {
-  "A gist" should {
+class GistSpec extends Specification {
+  "A valid gist" should {
     "be parseable from JSON" in {
       val gist = """
         {
@@ -61,8 +61,46 @@ class GistSpec  extends Specification {
           ]
         }
       """
-      val g = Gist.fromJSON(gist)
-      g.id must be equalTo 1
+      val g = Gist(gist).get
+      g.id must be equalTo "1"
+      g.description must be equalTo "description of gist"
+      g.public must be equalTo true
+      g.url must be equalTo "https://api.github.com/gists/1"
+      g.size must be equalTo 932
+      g.filename must be equalTo "ring.erl"
+      g.content must be equalTo "contents of gist"
+      g.describe must be equalTo "ring.erl (932 bytes)"
+    }
+
+    "be parseable without content" in {
+      val gist = """
+        {
+          "url": "https://api.github.com/gists/1",
+          "id": "1",
+          "description": "description of gist",
+          "public": true,
+          "user": {
+            "login": "octocat",
+            "id": 1,
+            "gravatar_url": "https://github.com/images/error/octocat_happy.gif",
+            "url": "https://api.github.com/users/octocat"
+          },
+          "files": {
+            "ring.erl": {
+              "size": 932,
+              "filename": "ring.erl",
+              "raw_url": "https://gist.github.com/raw/365370/8c4d2d43d178df44f4c03a7f2ac0ff512853564e/ring.erl",
+            }
+          }
+        }
+        """
+      Gist(gist).get.id must be equalTo "1"
+    }
+  }
+
+  "An invalid gist" should {
+    "should return none" in {
+      Gist("""invalid""") must beNone
     }
   }
 }
