@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/menu_fork_me"
+          android:icon="@android:drawable/ic_menu_info_details"
+          android:title="@string/fork_me"/>
+
+    <item android:id="@+id/menu_load_gist"
+              android:icon="@android:drawable/ic_menu_view"
+              android:title="@string/load_gist"/>
+
+</menu>

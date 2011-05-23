@@ -14,6 +14,7 @@ import android.net.{ConnectivityManager, Uri}
 import android.text.TextUtils
 import org.apache.http.HttpStatus
 import java.io.IOException
+import android.widget.Toast
 
 class Login extends AccountAuthenticatorActivity with Logger with ApiActivity with TypedActivity {
   val handler = new Handler()
@@ -84,12 +85,16 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
                   finish()
                 }
               }
-            case c => log("invalid status ("+c+") "+resp.getStatusLine)
-            /* TODO: handle */
+            case c =>
+              log("invalid status ("+c+") "+resp.getStatusLine)
+              Toast.makeText(this, R.string.loading_token_failed, Toast.LENGTH_LONG).show()
           }
         }
       }
-      catch   { case e:IOException => warn("error", e) /* TODO: handle */ }
+      catch {
+        case e:IOException => warn("error", e)
+        Toast.makeText(this, R.string.loading_token_failed, Toast.LENGTH_LONG).show()
+      }
       finally { handler.post { progress.dismiss() } }
     }
   }

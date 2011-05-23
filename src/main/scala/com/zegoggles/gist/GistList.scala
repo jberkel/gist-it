@@ -20,7 +20,10 @@ class GistList extends ListActivity with ApiActivity with Logger {
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
     val gist = gistAdapter.getItem(position)
     setResult(Activity.RESULT_OK,
-      new Intent().putExtra("id", gist.id).putExtra("filename", gist.filename))
+      new Intent().putExtra("id", gist.id)
+                  .putExtra("filename", gist.filename)
+                  .putExtra("raw_url", gist.raw_url)
+                  .putExtra("content", gist.content))
     finish()
   }
 
@@ -60,7 +63,6 @@ class GistAdapter extends BaseAdapter {
   def getItemId(position: Int) = getItem(position).hashCode()
   def getItem(position: Int):Gist = gists(position)
   def getCount = gists.size
-
   override def hasStableIds = true
 
   def setGists(l: Traversable[Gist]) {

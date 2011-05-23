@@ -1,11 +1,12 @@
 package com.zegoggles.gist
 
 import org.specs2.mutable.Specification
+import org.specs2.matcher.MustExpectable._
 
 class GistSpec extends Specification {
+
   "A valid gist" should {
-    "be parseable from JSON" in {
-      val gist = """
+       val valid_gist = """
         {
           "url": "https://api.github.com/gists/1",
           "id": "1",
@@ -61,15 +62,22 @@ class GistSpec extends Specification {
           ]
         }
       """
-      val g = Gist(gist).get
+
+    "be parseable from JSON" in {
+      val g = Gist(valid_gist).get
       g.id must be equalTo "1"
       g.description must be equalTo "description of gist"
       g.public must be equalTo true
       g.url must be equalTo "https://api.github.com/gists/1"
       g.size must be equalTo 932
       g.filename must be equalTo "ring.erl"
+      g.raw_url must be equalTo "https://gist.github.com/raw/365370/8c4d2d43d178df44f4c03a7f2ac0ff512853564e/ring.erl"
       g.content must be equalTo "contents of gist"
       g.describe must be equalTo "ring.erl (932 bytes)"
+    }
+
+    "have a method to access the backing content" in {
+      Gist(valid_gist).get.raw_content.get.size must be equalTo 932
     }
 
     "be parseable without content" in {
@@ -97,6 +105,7 @@ class GistSpec extends Specification {
       Gist(gist).get.id must be equalTo "1"
     }
   }
+
 
   "An invalid gist" should {
     "should return none" in {

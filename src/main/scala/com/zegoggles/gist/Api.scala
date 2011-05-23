@@ -87,7 +87,6 @@ object Api {
     obj
   }
 
-
   def parseTokenResponse(s: String): Option[Token] = {
     //"access_token=807e750b891b3fc47b0c951b4c11c0b610195b73&token_type=bearer"
     val token = for (
@@ -99,20 +98,17 @@ object Api {
 }
 
 class Api(val client_id: String, val client_secret: String, val redirect_uri: String, var token: Option[Token]) extends StdoutLogger {
-
   lazy val client = makeClient
-
   val authorizeUrl = "https://github.com/login/oauth/authorize?client_id=" +
     client_id + "&scope=user,gist&redirect_uri=" + redirect_uri
 
-  def get(req: Request) = execute(req, classOf[HttpGet])
-  def put(req: Request) = execute(req, classOf[HttpPut])
-  def post(req: Request) = execute(req, classOf[HttpPost])
+  def get(req: Request)   = execute(req, classOf[HttpGet])
+  def put(req: Request)   = execute(req, classOf[HttpPut])
+  def post(req: Request)  = execute(req, classOf[HttpPost])
   def patch(req: Request) = execute(req, classOf[HttpPatch])
 
   def execute[T <: HttpRequestBase](req: Request, reqClass: Class[T]) =
     client.execute(withAuthHeader(req.toHTTPRequest(reqClass)))
-
 
   def exchangeToken(code: String): Option[Token] = {
     val resp = post(Request("https://github.com/login/oauth/access_token",
@@ -191,6 +187,7 @@ trait ApiHolder extends TokenHolder {
   }
 }
 
+/** @see PATCH Method for HTTP: http://tools.ietf.org/html/rfc5789 */
 class HttpPatch extends HttpEntityEnclosingRequestBase {
   def getMethod = "PATCH"
 }

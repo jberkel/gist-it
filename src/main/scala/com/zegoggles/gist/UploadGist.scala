@@ -3,7 +3,6 @@ import Implicits._
 
 import android.os.Bundle
 import java.lang.Boolean
-import android.view.{KeyEvent, View}
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import android.net.Uri
@@ -11,6 +10,8 @@ import android.text.{TextUtils, ClipboardManager}
 import android.content.{Intent, Context}
 import org.apache.http.HttpStatus
 import android.app.{AlertDialog, ProgressDialog, Activity}
+import android.view.{MenuItem, Menu, KeyEvent, View}
+import actors.Futures
 
 class UploadGist extends Activity with Logger with ApiActivity with TypedActivity {
   lazy val (public, filename, description, content) =
@@ -46,7 +47,7 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
     }
 
     findView(TR.replace_btn).setOnClickListener { v:View =>
-      startActivityForResult(new Intent(this, classOf[GistList]), 0)
+      startActivityForResult(new Intent(this, classOf[GistList]), UploadGist.ReplaceRequest)
     }
 
     findView(TR.anon).setText(getString(R.string.anon_upload, getString(R.string.set_up_an_account)))
@@ -72,12 +73,12 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
       HttpStatus.SC_CREATED, progress)(onSuccess)(onError)
   }
 
-  def replace(id: String, public: Boolean, filename:String, description: String, content: String) {
+  def replace(data:Intent, public: Boolean, description: String, content: String) {
+    val id = data.getStringExtra("id")
     log("replacing gist "+id)
-
     val params = Map(
         "public"      -> public,
-        "files"       -> Map(filename -> Map("content" -> content)))
+        "files"       -> Map(data.getStringExtra("filename") -> Map("content" -> content)))
     val body = if (description.isEmpty) params else params ++ Map("description"->description)
     val progress = ProgressDialog.show(this, null, getString(R.string.uploading), true)
 
@@ -140,13 +141,43 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
   }
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-    if (resultCode == Activity.RESULT_OK && data.hasExtra("id")) {
-      replace(data.getStringExtra("id"),
-              public.isChecked, data.getStringExtra("filename"), description, content)
+    if (resultCode == Activity.RESULT_OK) {
+      requestCode match {
+        case UploadGist.ReplaceRequest => replace(data, public.isChecked, description, content)
+        case UploadGist.LoadRequest    => loadGist(data);
+      }
     }
+  }
+
+  override def onCreateOptionsMenu(menu: Menu) = {
+    getMenuInflater.inflate(R.menu.menu, menu)
+    true
+  }
+
+  override def onOptionsItemSelected(item: MenuItem) = {
+    item.getItemId match {
+      case R.id.menu_fork_me   => forkMe();   true
+      case R.id.menu_load_gist => startLoadGist(); true
+      case _ => false
+    }
+  }
+
+  def forkMe() {
+    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.github_url))))
+  }
+
+  def loadGist(data:Intent) = Futures.future {
+      copyToClipboard(io.Source.fromURL(data.getStringExtra("raw_url")).mkString)
+      runOnUiThread(Toast.makeText(this, R.string.gist_clipboard, Toast.LENGTH_SHORT).show())
+  }
+
+  def startLoadGist() {
+    startActivityForResult(new Intent(this, classOf[GistList]), UploadGist.LoadRequest)
   }
 }
 
 object UploadGist {
   val DefaultFileName = "gistfile1.txt"
+  val LoadRequest    = 1
+  val ReplaceRequest = 2
 }
