@@ -6,13 +6,15 @@ import java.lang.Boolean
 import android.view.{KeyEvent, View}
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
-import org.apache.http.HttpStatus
 import android.net.Uri
 import android.text.{TextUtils, ClipboardManager}
-import android.app.{AlertDialog, ProgressDialog, Activity}
 import android.content.{Intent, Context}
+import org.apache.http.HttpStatus
+import android.app.{AlertDialog, ProgressDialog, Activity}
 
 class UploadGist extends Activity with Logger with ApiActivity with TypedActivity {
+  lazy val (public, filename, description, content) =
+      (findView(TR.public_gist), findView(TR.filename), findView(TR.description), findView(TR.content))
 
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
@@ -22,7 +24,6 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
     bg.setAlpha(15)
     findView(TR.upload_root).setBackgroundDrawable(bg)
 
-    val (public, description, content) = (findView(TR.public_gist), findView(TR.description), findView(TR.content))
     content.setText(textFromIntent(getIntent))
     content.setOnEditorActionListener((v: View, id: Int, e: KeyEvent) =>
       if (id == EditorInfo.IME_ACTION_DONE ||
@@ -31,7 +32,7 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
       else false)
 
     findView(TR.upload_btn).setOnClickListener { v: View =>
-        val doUpload = () => upload(public.isChecked, description, content)
+        val doUpload = () => upload(public.isChecked, filename, description, content)
         if (!TextUtils.isEmpty(content))
           doUpload()
         else
@@ -55,44 +56,58 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
   override def onResume() {
     super.onResume()
     findView(TR.anon).setVisibility(if (account.isDefined) View.GONE else View.VISIBLE)
+    findView(TR.replace_btn).setVisibility(if (account.isDefined) View.VISIBLE else View.GONE)
   }
 
-  def upload(public: Boolean, description: String, content: String) {
-
+  def upload(public: Boolean, filename:String, description: String, content: String) {
+    val name = if (TextUtils.isEmpty(filename)) UploadGist.DefaultFileName else filename
     val params = Map(
       "description" -> description,
-      "public" -> public,
-      "files" -> Map("file1.txt" -> Map("content" -> content)))
+      "public"      -> public,
+      "files"       -> Map(name -> Map("content" -> content)))
 
     val progress = ProgressDialog.show(this, null, getString(R.string.uploading), true)
     executeAsync(api.post(_),
       Request("https://api.github.com/gists").body(params),
-      HttpStatus.SC_CREATED) {
-      success =>
-        progress.dismiss()
+      HttpStatus.SC_CREATED, progress)(onSuccess)(onError)
+  }
 
-        val gistUrl = success.getFirstHeader("Location").getValue
-        val publicUrl = makePublicUrl(gistUrl)
-        copyToClipboard(publicUrl)
+  def replace(id: String, public: Boolean, filename:String, description: String, content: String) {
+    log("replacing gist "+id)
 
-        log("gist uploaded to " + publicUrl)
-        Toast.makeText(this, R.string.gist_uploaded, Toast.LENGTH_SHORT).show()
+    val params = Map(
+        "public"      -> public,
+        "files"       -> Map(filename -> Map("content" -> content)))
+    val body = if (description.isEmpty) params else params ++ Map("description"->description)
+    val progress = ProgressDialog.show(this, null, getString(R.string.uploading), true)
 
-        if (getIntent != null && getIntent.getAction != Intent.ACTION_MAIN) {
-          setResult(Activity.RESULT_OK, new Intent()
-              .putExtra("location", gistUrl)
-              .putExtra("url", publicUrl))
-          finish()
-        }
-    } {
-      progress.dismiss()
+    executeAsync(api.patch(_),
+      Request("https://api.gisthub.com/gists/"+id).body(body),
+      HttpStatus.SC_OK, progress)(onSuccess)(onError)
+  }
 
-      error => error match {
-        case Left(exception) => warn("error", exception)
-        case Right(resp) => warn("unexpected status code: " + resp.getStatusLine)
-      }
-      Toast.makeText(this, R.string.uploading_failed, Toast.LENGTH_LONG).show()
+  def onSuccess(r: Api.Success) {
+    val gistUrl = r.getFirstHeader("Location").getValue
+    val publicUrl = makePublicUrl(gistUrl)
+    copyToClipboard(publicUrl)
+
+    log("gist uploaded to " + publicUrl)
+    Toast.makeText(this, R.string.gist_uploaded, Toast.LENGTH_SHORT).show()
+
+    if (getIntent != null && getIntent.getAction != Intent.ACTION_MAIN) {
+      setResult(Activity.RESULT_OK, new Intent()
+        .putExtra("location", gistUrl)
+        .putExtra("url", publicUrl))
+      finish()
     }
+  }
+
+  def onError(error: Api.Error) {
+    error match {
+      case Left(exception) => warn("error", exception)
+      case Right(resp) => warn("unexpected status code: " + resp.getStatusLine)
+    }
+    Toast.makeText(this, R.string.uploading_failed, Toast.LENGTH_LONG).show()
   }
 
   def textFromIntent(intent: Intent):String = {
@@ -125,9 +140,13 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
   }
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-    if (resultCode == Activity.RESULT_OK) {
-      val id = data.getStringExtra("id")
-      Toast.makeText(this, "Gist " +id+ " selected", Toast.LENGTH_LONG).show()
+    if (resultCode == Activity.RESULT_OK && data.hasExtra("id")) {
+      replace(data.getStringExtra("id"),
+              public.isChecked, data.getStringExtra("filename"), description, content)
     }
   }
+}
+
+object UploadGist {
+  val DefaultFileName = "gistfile1.txt"
 }

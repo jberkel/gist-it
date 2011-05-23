@@ -19,20 +19,17 @@ class GistList extends ListActivity with ApiActivity with Logger {
 
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
     val gist = gistAdapter.getItem(position)
-    setResult(Activity.RESULT_OK, new Intent().putExtra("id", gist.id))
+    setResult(Activity.RESULT_OK,
+      new Intent().putExtra("id", gist.id).putExtra("filename", gist.filename))
     finish()
   }
 
   def loadGists() {
-    val pd = ProgressDialog.show(this, null, "Loading", true)
+    val pd = ProgressDialog.show(this, null, getString(R.string.loading_gists), true)
     executeAsync(api.get(_),
       Request("https://api.github.com/gists"),
-      HttpStatus.SC_OK) { success =>
-        pd.dismiss()
-        JsonList(success.getEntity, Gist(_)).map(l => gistAdapter.setGists(l))
-    } {
+      HttpStatus.SC_OK, pd)(resp => JsonList(resp.getEntity, Gist(_)).map(l => gistAdapter.setGists(l))) {
       error =>
-        pd.dismiss()
         error match {
           case Left(e)  => warn("error getting gists", e)
           case Right(r) => warn("unexpected status code: "+r.getStatusLine)

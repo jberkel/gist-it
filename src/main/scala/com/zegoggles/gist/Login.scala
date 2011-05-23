@@ -54,7 +54,7 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
       override def onPageFinished(view: WebView, url: String) {
         super.onPageFinished(view, url)
         view.loadUrl("javascript:document.getElementById('login_field').focus();")
-        progress.dismiss()
+        try { progress.dismiss() } catch { case e:IllegalArgumentException => warn("", e) }
       }
     })
 

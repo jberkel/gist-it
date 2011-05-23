@@ -61,6 +61,7 @@
                           android:checked="true"/>
             </LinearLayout>
 
+
             <EditText android:id="@+id/description"
                       android:layout_width="fill_parent"
                       android:layout_height="wrap_content"
@@ -70,16 +71,32 @@
                       android:layout_marginTop="6dip"
                       android:layout_marginBottom="6dip"
                       android:gravity="top"
-                      android:minLines="2"
+                      android:minLines="1"
                       android:background="@color/light_transparent"
                       android:hint="@string/description"
                       android:imeOptions="actionNext"
+                      android:nextFocusDown="@+id/filename"/>
+
+            <EditText android:id="@+id/filename"
+                      android:layout_width="fill_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_below="@+id/description"
+                      android:layout_marginLeft="20dip"
+                      android:layout_marginRight="20dip"
+                      android:layout_marginTop="6dip"
+                      android:layout_marginBottom="6dip"
+                      android:gravity="top"
+                      android:minLines="1"
+                      android:background="@color/light_transparent"
+                      android:hint="@string/filename"
+                      android:imeOptions="actionNext"
                       android:nextFocusDown="@+id/content"/>
+
 
             <EditText android:id="@+id/content"
                       android:layout_width="fill_parent"
                       android:layout_height="wrap_content"
-                      android:layout_below="@+id/description"
+                      android:layout_below="@+id/filename"
                       android:layout_marginLeft="20dip"
                       android:layout_marginRight="20dip"
                       android:layout_marginTop="6dip"

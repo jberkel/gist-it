@@ -25,9 +25,9 @@ object Gist {
   }
 }
 
-case class Gist(val id: String, val description: String,
-           val filename: String, val size: Long,
-           val public: Boolean, val url: String, val content: String) {
+case class Gist(id: String, description: String,
+                filename: String, size: Long,
+                public: Boolean, url: String, content: String) {
 
   override def toString = "Gist %d".format(id)
   def describe = "%s (%s)".format(filename, Utils.humanReadableSize(size), id)

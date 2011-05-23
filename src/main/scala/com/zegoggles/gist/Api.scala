@@ -5,7 +5,6 @@ import org.apache.http.client.methods._
 import collection.mutable.ListBuffer
 import org.apache.http.client.utils.URLEncodedUtils
 import java.net.URI
-import android.app.Activity
 import Implicits._
 import android.accounts.{AccountManager, Account}
 import java.lang.Boolean
@@ -20,6 +19,7 @@ import org.apache.http.entity.StringEntity
 import java.io.IOException
 import org.apache.http.{HttpResponse, HttpStatus, NameValuePair}
 import actors.Futures
+import android.app.{Dialog, Activity}
 
 case class Token(access: String)
 object Request {
@@ -69,6 +69,9 @@ class Request(val url: String) extends  Logger {
 }
 
 object Api {
+  type Success = HttpResponse
+  type Error   = Either[Exception,HttpResponse]
+
   def map2Json(m: Map[String, Any]): JSONObject = {
     val obj: JSONObject = new JSONObject()
     for ((k, v) <- m) {
@@ -96,6 +99,7 @@ object Api {
 }
 
 class Api(val client_id: String, val client_secret: String, val redirect_uri: String, var token: Option[Token]) extends StdoutLogger {
+
   lazy val client = makeClient
 
   val authorizeUrl = "https://github.com/login/oauth/authorize?client_id=" +
@@ -104,6 +108,7 @@ class Api(val client_id: String, val client_secret: String, val redirect_uri: St
   def get(req: Request) = execute(req, classOf[HttpGet])
   def put(req: Request) = execute(req, classOf[HttpPut])
   def post(req: Request) = execute(req, classOf[HttpPost])
+  def patch(req: Request) = execute(req, classOf[HttpPatch])
 
   def execute[T <: HttpRequestBase](req: Request, reqClass: Class[T]) =
     client.execute(withAuthHeader(req.toHTTPRequest(reqClass)))
@@ -134,20 +139,21 @@ class Api(val client_id: String, val client_secret: String, val redirect_uri: St
 trait ApiActivity extends Activity with TokenHolder {
   def api = getApplication.asInstanceOf[App].api
 
-  def executeAsync(call: Request => HttpResponse, req: Request, expected: Int)
+  def executeAsync(call: Request => HttpResponse, req: Request, expected: Int, progress: Dialog)
                   (success: HttpResponse => Any)
-                  (error: Either[IOException, HttpResponse] => Any) {
+                  (error: Api.Error => Any) {
 
     def onUiThread(f: => Unit) {
-      runOnUiThread(new Runnable() { def run() { f } } )
+      runOnUiThread(new Runnable() { def run() { progress.dismiss(); f } } )
     }
 
+    progress.show()
     Futures.future {
       try {
         val resp = call(req)
         resp.getStatusLine.getStatusCode match {
           case code if code == expected => onUiThread { success(resp)}
-          case other => onUiThread { error(Right(resp))}
+          case other                    => onUiThread { error(Right(resp))}
         }
       } catch {
         case e: IOException => onUiThread { error(Left(e)) }
@@ -183,4 +189,8 @@ trait ApiHolder extends TokenHolder {
       client
     }
   }
+}
+
+class HttpPatch extends HttpEntityEnclosingRequestBase {
+  def getMethod = "PATCH"
 }
