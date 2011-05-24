@@ -8,10 +8,10 @@ import android.widget.Toast
 import android.net.Uri
 import android.text.{TextUtils, ClipboardManager}
 import android.content.{Intent, Context}
-import org.apache.http.HttpStatus
 import android.app.{AlertDialog, ProgressDialog, Activity}
 import android.view.{MenuItem, Menu, KeyEvent, View}
 import actors.Futures
+import org.apache.http.HttpStatus
 
 class UploadGist extends Activity with Logger with ApiActivity with TypedActivity {
   lazy val (public, filename, description, content) =
@@ -69,8 +69,8 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
 
     val progress = ProgressDialog.show(this, null, getString(R.string.uploading), true)
     executeAsync(api.post(_),
-      Request("https://api.github.com/gists").body(params),
-      HttpStatus.SC_CREATED, progress)(onSuccess)(onError)
+      Request("/gists").body(params),
+      HttpStatus.SC_CREATED, Some(progress))(onSuccess)(onError)
   }
 
   def replace(data:Intent, public: Boolean, description: String, content: String) {
@@ -83,23 +83,20 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
     val progress = ProgressDialog.show(this, null, getString(R.string.uploading), true)
 
     executeAsync(api.patch(_),
-      Request("https://api.gisthub.com/gists/"+id).body(body),
-      HttpStatus.SC_OK, progress)(onSuccess)(onError)
+      Request("/gists/"+id).body(body),
+      HttpStatus.SC_OK, Some(progress))(onSuccess)(onError)
   }
 
   def onSuccess(r: Api.Success) {
-    val gistUrl = r.getFirstHeader("Location").getValue
-    val publicUrl = makePublicUrl(gistUrl)
-    copyToClipboard(publicUrl)
-
-    log("gist uploaded to " + publicUrl)
-    Toast.makeText(this, R.string.gist_uploaded, Toast.LENGTH_SHORT).show()
-
-    if (getIntent != null && getIntent.getAction != Intent.ACTION_MAIN) {
-      setResult(Activity.RESULT_OK, new Intent()
-        .putExtra("location", gistUrl)
-        .putExtra("url", publicUrl))
-      finish()
+    Gist(r.getEntity).map { g =>
+        Toast.makeText(this, R.string.gist_uploaded, Toast.LENGTH_SHORT).show()
+        if (getIntent != null && getIntent.getAction != Intent.ACTION_MAIN) {
+          setResult(Activity.RESULT_OK, new Intent()
+            .putExtra("location", g.url)
+            .putExtra("url", g.public_url))
+          finish()
+        }
+        copyToClipboard(g.public_url)
     }
   }
 
@@ -132,7 +129,7 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
     } else ""
   }
 
-  def makePublicUrl(s: String) = "https://gist.github.com/" + Uri.parse(s).getLastPathSegment
+
 
   def copyToClipboard(c: CharSequence) {
     getSystemService(Context.CLIPBOARD_SERVICE)

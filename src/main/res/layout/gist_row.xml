@@ -4,18 +4,20 @@
               android:layout_width="fill_parent"
               android:layout_height="wrap_content"
               android:orientation="horizontal"
+              android:gravity="center_vertical"
               android:padding="5dip">
 
+    <TextView android:id="@+id/gist_description"
+              android:textSize="24sp"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:paddingLeft="2dip"/>
+
+    <!--
     <ImageView  android:id="@+id/private_gist"
                 android:src="@drawable/private_gist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
                />
-
-    <TextView android:id="@+id/gist_id"
-              android:textSize="24sp"
-              android:layout_width="fill_parent"
-              android:layout_height="wrap_content"
-              android:paddingLeft="5dip"/>
+    -->
 </LinearLayout>

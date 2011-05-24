@@ -72,7 +72,7 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
       try {
         api.exchangeToken(code).map { token =>
           log("successfully exchanged code for access token " + token)
-          val resp = api.get(Request("https://api.github.com/user", "access_token"->token.access))
+          val resp = api.get(Request("/user", "access_token"->token.access))
           resp.getStatusLine.getStatusCode match {
             case HttpStatus.SC_OK =>
               User(resp.getEntity).map { user =>

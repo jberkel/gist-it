@@ -1,8 +1,9 @@
 package com.zegoggles.gist
 
 import org.specs2.mutable.Specification
+import org.json.JSONObject
 
-class JsonListSpec extends Specification {
+class JsonModelSpec extends Specification {
   "a valid json user list" should {
     "return a list of users" in {
       val l = """
@@ -47,14 +48,14 @@ class JsonListSpec extends Specification {
       }
       ]
       """
-      val list = JsonList(l, User(_)).get
+      val list = JSONArrayWrapper(l, User(_:JSONObject)).get
       list.size must be equalTo  2
     }
   }
 
   "an invalid list" should {
     "return None" in {
-      JsonList("""invalid""", User(_)) must beNone
+      JSONArrayWrapper("""invalid""", User(_:JSONObject)) must beNone
     }
   }
 }

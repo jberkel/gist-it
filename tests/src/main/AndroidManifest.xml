@@ -1,7 +1,7 @@
 <manifest package="com.zegoggles.gist.tests" xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-sdk android:minSdkVersion="7"></uses-sdk>
+    <uses-sdk android:minSdkVersion="7"/>
     <application>
-        <uses-library android:name="android.test.runner"></uses-library>
+        <uses-library android:name="android.test.runner"/>
         <activity android:name=".MainActivity" android:label="@string/app_name">
            <intent-filter>
                <action android:name="android.intent.action.MAIN"/>
@@ -9,7 +9,6 @@
            </intent-filter>
         </activity>
     </application>
-    <instrumentation 
-    android:label="Tests" android:targetPackage="com.zegoggles.github" android:name="android.test.InstrumentationTestRunner">
+    <instrumentation android:label="Tests" android:targetPackage="com.zegoggles.git" android:name="android.test.InstrumentationTestRunner">
 </instrumentation>
 </manifest>

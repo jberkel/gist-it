@@ -7,6 +7,7 @@ import com.zegoggles.gist.Implicits._
 import android.app.{Activity, ProgressDialog, ListActivity}
 import android.content.{Intent, Context}
 import android.widget.{Toast, ListView, TextView, BaseAdapter}
+import android.text.Html
 
 class GistList extends ListActivity with ApiActivity with Logger {
   val gistAdapter = new GistAdapter()
@@ -30,8 +31,8 @@ class GistList extends ListActivity with ApiActivity with Logger {
   def loadGists() {
     val pd = ProgressDialog.show(this, null, getString(R.string.loading_gists), true)
     executeAsync(api.get(_),
-      Request("https://api.github.com/gists"),
-      HttpStatus.SC_OK, pd)(resp => JsonList(resp.getEntity, Gist(_)).map(l => gistAdapter.setGists(l))) {
+      Request("/gists"),
+      HttpStatus.SC_OK, Some(pd))(resp => Gist.list(resp.getEntity).map(l => gistAdapter.setGists(l))) {
       error =>
         error match {
           case Left(e)  => warn("error getting gists", e)
@@ -45,18 +46,19 @@ class GistList extends ListActivity with ApiActivity with Logger {
 
 class GistAdapter extends BaseAdapter {
   var gists: IndexedSeq[Gist] = Vector.empty
+  def findView[T](v: View, tr: TypedResource[T]) = v.findViewById(tr.id).asInstanceOf[T]
 
   def getView(position: Int, convertView: View, parent: ViewGroup) = {
-    val view = if (convertView == null) {
+    val view = if (convertView == null)
       parent.getContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)
             .asInstanceOf[LayoutInflater].inflate(R.layout.gist_row, parent, false)
-    } else {
-      convertView
-    }
+    else convertView
+
     val gist = getItem(position)
-    if (gist.public) view.findViewById(R.id.private_gist).setVisibility(View.GONE)
-    val tv: TextView  = view.findViewById(R.id.gist_id).asInstanceOf[TextView]
-    tv.setText(gist.describe)
+    val description = findView(view, TR.gist_description)
+    description.setText(Html.fromHtml(gist.asHtml.toString()))
+    //if (gist.public) view.findViewById(R.id.private_gist).setVisibility(View.GONE)
+    view.setBackgroundColor(view.getResources.getColor(gist.color))
     view
   }
 

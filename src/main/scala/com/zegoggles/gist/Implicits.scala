@@ -5,9 +5,9 @@ import io.Source
 import android.view.View.OnClickListener
 import android.view.{KeyEvent, View}
 import android.widget.TextView.OnEditorActionListener
-import android.widget.TextView
 import org.json.JSONObject
 import android.content.DialogInterface
+import android.widget.{CheckBox, TextView}
 
 object Implicits {
   implicit def funToRunnable(f: => Unit) = new Runnable { def run() { f }}

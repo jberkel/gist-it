@@ -3,4 +3,6 @@
 <resources>
     <color name="background">#AAE2E2E2</color>
     <color name="light_transparent">#00ffffff</color>
+    <color name="private_gist">#fffeeb</color>
+    <color name="public_gist">#e9e9e9</color>
 </resources>

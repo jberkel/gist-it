@@ -10,6 +10,7 @@ import android.accounts.{AccountManager, Account}
 import java.lang.Boolean
 import android.net.http.AndroidHttpClient
 import org.apache.http.client.HttpClient
+import org.apache.http.HttpHost
 import android.content.Context
 import android.content.pm.PackageManager
 import org.apache.http.params.HttpConnectionParams
@@ -99,6 +100,7 @@ object Api {
 
 class Api(val client_id: String, val client_secret: String, val redirect_uri: String, var token: Option[Token]) extends StdoutLogger {
   lazy val client = makeClient
+  val baseHost = new HttpHost("api.github.com", -1, "https")
   val authorizeUrl = "https://github.com/login/oauth/authorize?client_id=" +
     client_id + "&scope=user,gist&redirect_uri=" + redirect_uri
 
@@ -108,7 +110,7 @@ class Api(val client_id: String, val client_secret: String, val redirect_uri: St
   def patch(req: Request) = execute(req, classOf[HttpPatch])
 
   def execute[T <: HttpRequestBase](req: Request, reqClass: Class[T]) =
-    client.execute(withAuthHeader(req.toHTTPRequest(reqClass)))
+    client.execute(baseHost, withAuthHeader(req.toHTTPRequest(reqClass)))
 
   def exchangeToken(code: String): Option[Token] = {
     val resp = post(Request("https://github.com/login/oauth/access_token",
@@ -135,15 +137,14 @@ class Api(val client_id: String, val client_secret: String, val redirect_uri: St
 trait ApiActivity extends Activity with TokenHolder {
   def api = getApplication.asInstanceOf[App].api
 
-  def executeAsync(call: Request => HttpResponse, req: Request, expected: Int, progress: Dialog)
+  def executeAsync(call: Request => HttpResponse, req: Request, expected: Int, progress: Option[Dialog])
                   (success: HttpResponse => Any)
                   (error: Api.Error => Any) {
 
     def onUiThread(f: => Unit) {
-      runOnUiThread(new Runnable() { def run() { progress.dismiss(); f } } )
+      runOnUiThread(new Runnable() { def run() { progress.map(_.dismiss()); f } } )
     }
-
-    progress.show()
+    progress.map(_.show())
     Futures.future {
       try {
         val resp = call(req)

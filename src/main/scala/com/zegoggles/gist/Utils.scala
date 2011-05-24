@@ -45,4 +45,20 @@ object Utils {
       case c  => (b/1024/1024/1024).round+" gb"
     }
   }
+
+  def humanTime(t: Long) = {
+    def format(s: Long, divisor:Int, name:String) = {
+        val value = (s/divisor).round
+        value+" "+(if (value == 1) name else name+"s")
+    }
+    t match {
+      case s if s < 10           => "just now"
+      case s if s < 60           =>  format(s, 1, "second")
+      case s if s < 3600         =>  format(s, 60, "minute")
+      case s if s < 3600*24      =>  format(s, 3600, "hour")
+      case s if s < 86400*30     =>  format(s, 86400, "day")
+      case s if s < 86400*30*12  =>  format(s, 86400*30, "month")
+      case s                     =>  format(s, 86400*30*12, "year")
+    }
+  }
 }

@@ -4,8 +4,7 @@ import org.specs2.mutable._
 
 class UserSpec extends Specification {
   "A user" should {
-    "be parseable from JSON" in {
-      val u = User("""
+    val user = """
       {
         "user": {
           "gravatar_id": "b8dbb1987e8e5318584865f880036796",
@@ -25,15 +24,25 @@ class UserSpec extends Specification {
           "email": "chris@wanstrath.com"
         }
       }
-      """).get
+      """
+
+    "be parseable from JSON" in {
+      val u = User(user).get
       u.name must be equalTo "Chris Wanstrath"
       u.id must be equalTo 2
       u.login must be equalTo "defunkt"
       u.email must be equalTo "chris@wanstrath.com"
     }
 
-    "should return None if not parseable" in {
+    "return None if not parseable" in {
       User("bla") must beNone
+    }
+
+    "be pattern matchable" in {
+      User(user) match {
+        case Some(User(2, _, login, _)) => login must be equalTo "defunkt"
+        case _    => error("default case")
+      }
     }
   }
 }

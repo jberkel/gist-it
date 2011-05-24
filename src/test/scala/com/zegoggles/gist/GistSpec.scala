@@ -1,9 +1,10 @@
 package com.zegoggles.gist
 
 import org.specs2.mutable.Specification
-import org.specs2.matcher.MustExpectable._
+import org.specs2.matcher.MustThrownExpectations
 
 class GistSpec extends Specification {
+
 
   "A valid gist" should {
        val valid_gist = """
@@ -63,25 +64,45 @@ class GistSpec extends Specification {
         }
       """
 
+    lazy val gist = Gist(valid_gist).get
+
     "be parseable from JSON" in {
-      val g = Gist(valid_gist).get
-      g.id must be equalTo "1"
-      g.description must be equalTo "description of gist"
-      g.public must be equalTo true
-      g.url must be equalTo "https://api.github.com/gists/1"
-      g.size must be equalTo 932
-      g.filename must be equalTo "ring.erl"
-      g.raw_url must be equalTo "https://gist.github.com/raw/365370/8c4d2d43d178df44f4c03a7f2ac0ff512853564e/ring.erl"
-      g.content must be equalTo "contents of gist"
-      g.describe must be equalTo "ring.erl (932 bytes)"
+      gist.id must be equalTo "1"
+      gist.description must be equalTo "description of gist"
+      gist.public must be equalTo true
+      gist.url must be equalTo "https://api.github.com/gists/1"
+      gist.size must be equalTo 932
+      gist.filename must be equalTo "ring.erl"
+      gist.raw_url must be equalTo "https://gist.github.com/raw/365370/8c4d2d43d178df44f4c03a7f2ac0ff512853564e/ring.erl"
+      gist.content must be equalTo "contents of gist"
+    }
+
+
+    "have the last modified timestamp" in {
+       gist.last_modified must be equalTo 1271204115
+    }
+
+    "show the last edit in a nice form" in {
+      gist.last_modified_ago must be equalTo "1 year ago"
+    }
+
+    "have a public url" in {
+      gist.public_url must be equalTo "https://gist.github.com/1"
+    }
+
+    "be pattern matchable" in {
+      Gist(valid_gist) match {
+        case Some(Gist("1", _, _, size, _, _, _, _, _)) => size must be equalTo 932
+        case _    => error("default case")
+      }
     }
 
     "have a method to access the backing content" in {
-      Gist(valid_gist).get.raw_content.get.size must be equalTo 932
+      gist.raw_content.get.size must be equalTo 932
     }
 
     "be parseable without content" in {
-      val gist = """
+      val short_gist = """
         {
           "url": "https://api.github.com/gists/1",
           "id": "1",
@@ -99,13 +120,18 @@ class GistSpec extends Specification {
               "filename": "ring.erl",
               "raw_url": "https://gist.github.com/raw/365370/8c4d2d43d178df44f4c03a7f2ac0ff512853564e/ring.erl",
             }
-          }
+          },
+          "comments": 0,
+          "git_pull_url": "git://gist.github.com/1.git",
+          "git_push_url": "git@gist.github.com:1.git",
+          "created_at": "2010-04-14T02:15:15Z"
         }
         """
-      Gist(gist).get.id must be equalTo "1"
+      val gist = Gist(short_gist).get
+      gist.id must be equalTo "1"
+      gist.last_modified must be equalTo 1271204115
     }
   }
-
 
   "An invalid gist" should {
     "should return none" in {
