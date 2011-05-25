@@ -9,4 +9,7 @@
               android:icon="@android:drawable/ic_menu_view"
               android:title="@string/load_gist"/>
 
+    <item android:id="@+id/menu_clear"
+              android:icon="@android:drawable/ic_menu_close_clear_cancel"
+              android:title="@string/clear"/>
 </menu>

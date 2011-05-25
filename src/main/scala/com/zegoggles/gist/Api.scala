@@ -22,7 +22,6 @@ import org.apache.http.{HttpResponse, HttpStatus, NameValuePair}
 import actors.Futures
 import android.app.{Dialog, Activity}
 
-case class Token(access: String)
 object Request {
   def apply(s: String, p: (String, String)*) = {
     val request = new Request(s)
@@ -69,6 +68,7 @@ class Request(val url: String) extends  Logger {
   }
 }
 
+case class Token(access: String)
 object Api {
   type Success = HttpResponse
   type Error   = Either[Exception,HttpResponse]
@@ -79,10 +79,10 @@ object Api {
       obj.put(k, v match {
         case m: Map[String, Any] => map2Json(m)
         case b: Boolean => b
-        case i: Int => i
-        case l: Long => l
-        case d: Double => d
-        case o: Any  => o
+        case i: Int     => i
+        case l: Long    => l
+        case d: Double  => d
+        case o: Any     => o
       })
     }
     obj
@@ -136,10 +136,9 @@ class Api(val client_id: String, val client_secret: String, val redirect_uri: St
 
 trait ApiActivity extends Activity with TokenHolder {
   def api = getApplication.asInstanceOf[App].api
-
   def executeAsync(call: Request => HttpResponse, req: Request, expected: Int, progress: Option[Dialog])
                   (success: HttpResponse => Any)
-                  (error: Api.Error => Any) {
+                  (error: Api.Error => Any) = {
 
     def onUiThread(f: => Unit) {
       runOnUiThread(new Runnable() { def run() { progress.map(_.dismiss()); f } } )

@@ -3,7 +3,6 @@ import Implicits._
 
 import android.os.Bundle
 import java.lang.Boolean
-import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import android.net.Uri
 import android.text.{TextUtils, ClipboardManager}
@@ -12,28 +11,31 @@ import android.app.{AlertDialog, ProgressDialog, Activity}
 import android.view.{MenuItem, Menu, KeyEvent, View}
 import actors.Futures
 import org.apache.http.HttpStatus
+import java.io.IOException
+import android.view.inputmethod.{InputMethodManager, EditorInfo}
 
 class UploadGist extends Activity with Logger with ApiActivity with TypedActivity {
   lazy val (public, filename, description, content) =
       (findView(TR.public_gist), findView(TR.filename), findView(TR.description), findView(TR.content))
 
+  var previousGist:Option[Bundle] = None
+
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
     setContentView(R.layout.upload_gist)
+    setBackground(findView(TR.upload_root), R.drawable.octocat_bg, 15)
 
-    val bg = getResources.getDrawable(R.drawable.octocat_bg)
-    bg.setAlpha(15)
-    findView(TR.upload_root).setBackgroundDrawable(bg)
-
+    content.requestFocus()
     content.setText(textFromIntent(getIntent))
     content.setOnEditorActionListener((v: View, id: Int, e: KeyEvent) =>
-      if (id == EditorInfo.IME_ACTION_DONE ||
-        (e.getKeyCode == KeyEvent.KEYCODE_ENTER && e.getAction == KeyEvent.ACTION_DOWN))
+      if (id == EditorInfo.IME_ACTION_DONE)
         findViewById(R.id.upload_btn).performClick()
-      else false)
+      else false
+    )
 
     findView(TR.upload_btn).setOnClickListener { v: View =>
-        val doUpload = () => upload(public.isChecked, filename, description, content)
+        hideSoftKeyboard(content)
+        val doUpload = () => upload(previousGist, public.isChecked, filename, description, content)
         if (!TextUtils.isEmpty(content))
           doUpload()
         else
@@ -46,10 +48,6 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
             .show()
     }
 
-    findView(TR.replace_btn).setOnClickListener { v:View =>
-      startActivityForResult(new Intent(this, classOf[GistList]), UploadGist.ReplaceRequest)
-    }
-
     findView(TR.anon).setText(getString(R.string.anon_upload, getString(R.string.set_up_an_account)))
     Utils.clickify(findView(TR.anon), getString(R.string.set_up_an_account), addAccount(this))
   }
@@ -57,10 +55,21 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
   override def onResume() {
     super.onResume()
     findView(TR.anon).setVisibility(if (account.isDefined) View.GONE else View.VISIBLE)
-    findView(TR.replace_btn).setVisibility(if (account.isDefined) View.VISIBLE else View.GONE)
   }
 
-  def upload(public: Boolean, filename:String, description: String, content: String) {
+  override def onSaveInstanceState(outState: Bundle) {
+    super.onSaveInstanceState(outState)
+    previousGist.map(b => outState.putBundle(UploadGist.ExtraPreviousGist, b))
+  }
+  override def onRestoreInstanceState(state: Bundle) {
+    super.onRestoreInstanceState(state)
+    previousGist = if (state.getBundle(UploadGist.ExtraPreviousGist) != null)
+      Some(state.getBundle(UploadGist.ExtraPreviousGist))
+    else
+      None
+  }
+
+  def upload(previous: Option[Bundle], public: Boolean, filename:String, description: String, content: String) = {
     val name = if (TextUtils.isEmpty(filename)) UploadGist.DefaultFileName else filename
     val params = Map(
       "description" -> description,
@@ -68,29 +77,23 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
       "files"       -> Map(name -> Map("content" -> content)))
 
     val progress = ProgressDialog.show(this, null, getString(R.string.uploading), true)
-    executeAsync(api.post(_),
-      Request("/gists").body(params),
-      HttpStatus.SC_CREATED, Some(progress))(onSuccess)(onError)
-  }
-
-  def replace(data:Intent, public: Boolean, description: String, content: String) {
-    val id = data.getStringExtra("id")
-    log("replacing gist "+id)
-    val params = Map(
-        "public"      -> public,
-        "files"       -> Map(data.getStringExtra("filename") -> Map("content" -> content)))
-    val body = if (description.isEmpty) params else params ++ Map("description"->description)
-    val progress = ProgressDialog.show(this, null, getString(R.string.uploading), true)
-
-    executeAsync(api.patch(_),
-      Request("/gists/"+id).body(body),
-      HttpStatus.SC_OK, Some(progress))(onSuccess)(onError)
+    if (previous.isEmpty) {
+      executeAsync(
+        api.post(_),
+        Request("/gists").body(params),
+        HttpStatus.SC_CREATED, Some(progress))(onSuccess)(onError)
+    } else {
+      executeAsync(
+        api.patch(_),
+        Request("/gists/"+previous.get.getString("id")).body(params),
+        HttpStatus.SC_OK, Some(progress))(onSuccess)(onError)
+    }
   }
 
   def onSuccess(r: Api.Success) {
     Gist(r.getEntity).map { g =>
         Toast.makeText(this, R.string.gist_uploaded, Toast.LENGTH_SHORT).show()
-        if (getIntent != null && getIntent.getAction != Intent.ACTION_MAIN) {
+        if (launchedViaIntent) {
           setResult(Activity.RESULT_OK, new Intent()
             .putExtra("location", g.url)
             .putExtra("url", g.public_url))
@@ -129,8 +132,6 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
     } else ""
   }
 
-
-
   def copyToClipboard(c: CharSequence) {
     getSystemService(Context.CLIPBOARD_SERVICE)
       .asInstanceOf[ClipboardManager]
@@ -140,7 +141,6 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
     if (resultCode == Activity.RESULT_OK) {
       requestCode match {
-        case UploadGist.ReplaceRequest => replace(data, public.isChecked, description, content)
         case UploadGist.LoadRequest    => loadGist(data);
       }
     }
@@ -155,6 +155,7 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
     item.getItemId match {
       case R.id.menu_fork_me   => forkMe();   true
       case R.id.menu_load_gist => startLoadGist(); true
+      case R.id.menu_clear     => clear(); true
       case _ => false
     }
   }
@@ -163,18 +164,51 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.github_url))))
   }
 
-  def loadGist(data:Intent) = Futures.future {
-      copyToClipboard(io.Source.fromURL(data.getStringExtra("raw_url")).mkString)
-      runOnUiThread(Toast.makeText(this, R.string.gist_clipboard, Toast.LENGTH_SHORT).show())
+  def clear() {
+    List(content, filename, description).foreach(_.setText(""))
+    public.setChecked(true)
+    previousGist = None
+  }
+
+  def loadGist(intent:Intent) = Futures.future {
+      try {
+        val gistContent = io.Source.fromURL(intent.getData.toString).mkString
+        copyToClipboard(gistContent)
+        runOnUiThread { () =>
+          Toast.makeText(this, R.string.gist_clipboard, Toast.LENGTH_SHORT).show()
+          description.setText(intent.getStringExtra("description"))
+          filename.setText(intent.getStringExtra("filename"))
+          public.setChecked(intent.getBooleanExtra("public", true))
+          content.setText(gistContent)
+          previousGist = Some(intent.getExtras)
+        }
+      } catch {
+        case e:IOException =>
+          runOnUiThread(Toast.makeText(this,
+            getString(R.string.loading_gist_failed, e.getMessage),
+            Toast.LENGTH_SHORT).show()
+          )
+      }
   }
 
   def startLoadGist() {
     startActivityForResult(new Intent(this, classOf[GistList]), UploadGist.LoadRequest)
   }
+
+  def setBackground(v: View, resId: Int, alpha: Int) {
+    val bg = getResources.getDrawable(resId)
+    bg.setAlpha(alpha)
+    v.setBackgroundDrawable(bg)
+  }
+
+  def launchedViaIntent = getIntent != null && getIntent.getAction != Intent.ACTION_MAIN
+  def hideSoftKeyboard(v:View) =
+    getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
+        .hideSoftInputFromWindow(v.getWindowToken, 0)
 }
 
 object UploadGist {
-  val DefaultFileName = "gistfile1.txt"
-  val LoadRequest    = 1
-  val ReplaceRequest = 2
+  val ExtraPreviousGist = "previousGist"
+  val DefaultFileName   = "gistfile1.txt"
+  val LoadRequest       = 1
 }

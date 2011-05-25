@@ -1,11 +1,8 @@
 package com.zegoggles.gist
 
 import org.specs2.mutable.Specification
-import org.specs2.matcher.MustThrownExpectations
 
 class GistSpec extends Specification {
-
-
   "A valid gist" should {
        val valid_gist = """
         {
@@ -79,7 +76,7 @@ class GistSpec extends Specification {
 
 
     "have the last modified timestamp" in {
-       gist.last_modified must be equalTo 1271204115
+       gist.last_modified must be equalTo 1271211315
     }
 
     "show the last edit in a nice form" in {
@@ -106,7 +103,7 @@ class GistSpec extends Specification {
         {
           "url": "https://api.github.com/gists/1",
           "id": "1",
-          "description": "description of gist",
+          "description": null,
           "public": true,
           "user": {
             "login": "octocat",
@@ -129,7 +126,8 @@ class GistSpec extends Specification {
         """
       val gist = Gist(short_gist).get
       gist.id must be equalTo "1"
-      gist.last_modified must be equalTo 1271204115
+      gist.last_modified must be equalTo 1271211315
+      gist.description must beNull
     }
   }
 

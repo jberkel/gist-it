@@ -4,12 +4,10 @@ import java.io.IOException
 import scala.Some
 import java.net.URL
 import org.json.JSONObject
-import java.text.SimpleDateFormat
+import android.os.Bundle
+import android.net.Uri
 
 object Gist extends JsonModel[Gist] {
-  lazy val iso8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-  def getDate(s: String ) = iso8601.parse(s)
-
   def apply(j: JSONObject) = {
     val files = j.getJSONObject("files").names()
     val file = j.getJSONObject("files").getJSONObject(files.getString(0))
@@ -19,7 +17,8 @@ object Gist extends JsonModel[Gist] {
     else
       getDate(j.getString("created_at"))
 
-    Some(Gist(j.getString("id"), j.getString("description"),
+    Some(Gist(j.getString("id"),
+      if (j.isNull("description")) null else j.getString("description"),
       file.getString("filename"),
       file.getLong("size"),
       j.getBoolean("public"),
@@ -35,7 +34,6 @@ case class Gist(id: String, description: String,
                 public: Boolean, url: String, raw_url: String,
                 content: String, last_modified: Long) {
 
-
   override def toString = "Gist %d".format(id)
   def asHtml = <span><b>{filename}</b><small> ({size_in_words}, {last_modified_ago})</small></span>
   def public_url =  "https://gist.github.com/" + url.substring(url.lastIndexOf("/")+1)
@@ -44,8 +42,20 @@ case class Gist(id: String, description: String,
       Some(io.Source.fromURL(new URL(raw_url)).mkString)
     } catch { case e:IOException => None }
 
-  def size_in_words = Utils.humanReadableSize(size)
-  def last_modified_ago = Utils.humanTime(System.currentTimeMillis() / 1000L - last_modified) + " ago"
+  def size_in_words = Utils.readableSize(size)
+  def last_modified_ago = Utils.readableTime(System.currentTimeMillis() / 1000L - last_modified)
   def color = if (public) R.color.public_gist else R.color.private_gist
+
+  lazy val uri = Uri.parse(raw_url)
+  def asBundle = {
+    val b = new Bundle()
+    b.putString("id", id)
+    b.putString("filename", filename)
+    b.putString("description", description)
+    b.putString("raw_url", raw_url)
+    b.putString("content", content)
+    b.putBoolean("public", public)
+    b
+  }
 }
 

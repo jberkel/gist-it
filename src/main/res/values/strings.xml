@@ -18,6 +18,7 @@
 
     <string name="security_exception">Error accessing content (permission denied)</string>
     <string name="uploading_failed">Uploading failed"</string>
+    <string name="loading_gist_failed">Loading gist failed: %s</string>
     <string name="list_failed">Getting gists failed"</string>
 
     <string name="login_error_no_connection_message">Error while connecting</string>
@@ -41,7 +42,8 @@
     <string name="replace">Replace gist</string>
 
     <string name="fork_me">Fork me</string>
+    <string name="clear">Clear</string>
     <string name="load_gist">Load gist</string>
-    <string name="github_url">https://github.com/jberkel/send-to-gistt</string>
+    <string name="github_url">https://github.com/jberkel/send-to-gist</string>
     <string name="gist_clipboard">Gist copied to clipboard</string>
 </resources>

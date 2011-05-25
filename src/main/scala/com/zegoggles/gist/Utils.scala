@@ -37,19 +37,17 @@ object Utils {
     } else false
   }
 
-  def humanReadableSize(b: Long) = {
-    b match {
-      case c if c > 0 && c < 1024 => b+" bytes"
-      case c if c > 1024 && c < 1024*1024 => (b/1024).round+" kb"
-      case c if c > 1024*1024 && c < 1024*1024*1024 => (b/1024/1024).round+" mb"
-      case c  => (b/1024/1024/1024).round+" gb"
-    }
+  def readableSize(b: Long) = b match {
+    case c if c > 0 && c < 1024 => b+" bytes"
+    case c if c > 1024 && c < 1024*1024 => (b/1024).round+" kb"
+    case c if c > 1024*1024 && c < 1024*1024*1024 => (b/1024/1024).round+" mb"
+    case c  => (b/1024/1024/1024).round+" gb"
   }
 
-  def humanTime(t: Long) = {
+  def readableTime(t: Long) = {
     def format(s: Long, divisor:Int, name:String) = {
         val value = (s/divisor).round
-        value+" "+(if (value == 1) name else name+"s")
+        value+" "+((if (value == 1) name else name+"s")+ " ago")
     }
     t match {
       case s if s < 10           => "just now"

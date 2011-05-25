@@ -10,21 +10,15 @@ import android.widget.{Toast, ListView, TextView, BaseAdapter}
 import android.text.Html
 
 class GistList extends ListActivity with ApiActivity with Logger {
-  val gistAdapter = new GistAdapter()
-
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
-    setListAdapter(gistAdapter)
+    setListAdapter(new GistAdapter())
     loadGists()
   }
-
+  override def getListAdapter:GistAdapter = super.getListAdapter.asInstanceOf[GistAdapter]
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
-    val gist = gistAdapter.getItem(position)
-    setResult(Activity.RESULT_OK,
-      new Intent().putExtra("id", gist.id)
-                  .putExtra("filename", gist.filename)
-                  .putExtra("raw_url", gist.raw_url)
-                  .putExtra("content", gist.content))
+    val gist = getListAdapter.getItem(position)
+    setResult(Activity.RESULT_OK, new Intent().putExtras(gist.asBundle).setData(gist.uri))
     finish()
   }
 
@@ -32,7 +26,7 @@ class GistList extends ListActivity with ApiActivity with Logger {
     val pd = ProgressDialog.show(this, null, getString(R.string.loading_gists), true)
     executeAsync(api.get(_),
       Request("/gists"),
-      HttpStatus.SC_OK, Some(pd))(resp => Gist.list(resp.getEntity).map(l => gistAdapter.setGists(l))) {
+      HttpStatus.SC_OK, Some(pd))(resp => Gist.list(resp.getEntity).map(l => getListAdapter.setGists(l))) {
       error =>
         error match {
           case Left(e)  => warn("error getting gists", e)
@@ -46,8 +40,8 @@ class GistList extends ListActivity with ApiActivity with Logger {
 
 class GistAdapter extends BaseAdapter {
   var gists: IndexedSeq[Gist] = Vector.empty
-  def findView[T](v: View, tr: TypedResource[T]) = v.findViewById(tr.id).asInstanceOf[T]
 
+  def findView[T](v: View, tr: TypedResource[T]) = v.findViewById(tr.id).asInstanceOf[T]
   def getView(position: Int, convertView: View, parent: ViewGroup) = {
     val view = if (convertView == null)
       parent.getContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)
@@ -57,12 +51,11 @@ class GistAdapter extends BaseAdapter {
     val gist = getItem(position)
     val description = findView(view, TR.gist_description)
     description.setText(Html.fromHtml(gist.asHtml.toString()))
-    //if (gist.public) view.findViewById(R.id.private_gist).setVisibility(View.GONE)
     view.setBackgroundColor(view.getResources.getColor(gist.color))
     view
   }
 
-  def getItemId(position: Int) = getItem(position).hashCode()
+  def getItemId(position: Int) = getItem(position).id.hashCode()
   def getItem(position: Int):Gist = gists(position)
   def getCount = gists.size
   override def hasStableIds = true

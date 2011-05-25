@@ -11,6 +11,8 @@ import android.widget.{CheckBox, TextView}
 
 object Implicits {
   implicit def funToRunnable(f: => Unit) = new Runnable { def run() { f }}
+  implicit def funToRunnable2(f: () => Unit) = new Runnable { def run() { f() }}
+
   implicit def textViewToString(tv: TextView):String = tv.getText.toString
   implicit def mapToJSON(map: Map[String,Any]):JSONObject = Api.map2Json(map)
   implicit def jsonToString(json: JSONObject):String = json.toString

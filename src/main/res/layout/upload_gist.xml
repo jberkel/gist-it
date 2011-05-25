@@ -3,9 +3,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
-                android:orientation="vertical"
-                android:focusable="true"
-                android:focusableInTouchMode="true">
+                android:orientation="vertical">
 
     <ScrollView
         android:layout_weight="1"
@@ -101,6 +99,7 @@
                       android:layout_marginRight="20dip"
                       android:layout_marginTop="6dip"
                       android:layout_marginBottom="6dip"
+                      android:inputType="textMultiLine"
                       android:gravity="top"
                       android:minLines="4"
                       android:background="@color/light_transparent"
@@ -152,15 +151,6 @@
                       android:layout_height="wrap_content"
                       android:paddingTop="5dip"
                       android:layout_marginTop="5dip">
-
-            <Button android:id="@+id/replace_btn"
-                    android:text="@string/replace"
-                    android:layout_weight="1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="fill_parent"
-                    android:layout_marginLeft="15dip"
-                    android:layout_marginRight="10dip"
-                    />
 
             <Button android:id="@+id/upload_btn"
                     android:text="@string/upload"

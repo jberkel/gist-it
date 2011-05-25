@@ -9,7 +9,7 @@
                  android:name="App"
                  android:theme="@android:style/Theme.Light.NoTitleBar">
 
-        <activity android:name="UploadGist" android:excludeFromRecents="true">
+        <activity android:name="UploadGist" android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>
                 <data android:mimeType="text/*"/>
