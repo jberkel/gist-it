@@ -4,8 +4,7 @@
           android:versionCode="1"
           android:installLocation="auto">
 
-
-    <application android:icon="@drawable/octocat"
+    <application android:icon="@drawable/gist_it_logo"
                  android:label="@string/app_name"
                  android:name="App"
                  android:theme="@android:style/Theme.Light.NoTitleBar">

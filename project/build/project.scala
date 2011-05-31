@@ -9,7 +9,7 @@ class Parent(info: ProjectInfo) extends ParentProject(info) with IdeaProject {
   override def shouldCheckOutputDirectories = false
   override def updateAction = task { None }
 
-  lazy val main  = project(".", "gist", new MainProject(_))
+  lazy val main  = project(".", "gist-it", new MainProject(_))
   lazy val tests = project("tests",  "tests", new TestProject(_), main)
 
   class MainProject(info: ProjectInfo) extends AndroidProject(info)
