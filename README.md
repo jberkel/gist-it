@@ -1,4 +1,4 @@
-# gist-it
+# [gist-it][]
 
 ![icon][]
 
@@ -55,6 +55,7 @@ Pull requests welcome, especially the design needs some love (hint, hint).
 
 See LICENSE. Post it graphic by [christianalm][].
 
+[gist-it]: https://market.android.com/details?id=com.zegoggles.gist
 [gist]: https://github.com/blog/118-here-s-the-gist-of-it
 [github api]: http://developer.github.com/v3/gists/
 [ColorNote Notepad]: https://market.android.com/details?id=com.socialnmobile.dictapps.notepad.color.note
