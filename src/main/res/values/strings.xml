@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">send-to-gist</string>
+    <string name="app_name">gist-it</string>
+    <string name="authenticator_label">gist-it</string>
     <string name="account_type">com.zegoggles.gist</string>
-    <string name="authenticator_label">gist</string>
     <string name="loading_login">Loading</string>
     <string name="loading_token">Authenticating</string>
     <string name="loading_token_failed">Token exchange failed</string>
@@ -47,6 +47,6 @@
     <string name="clear">Clear</string>
     <string name="load_gist">Load gist</string>
     <string name="loading_gist">Loading gist</string>
-    <string name="github_url">https://github.com/jberkel/send-to-gist</string>
+    <string name="github_url">https://github.com/jberkel/gist-it</string>
     <string name="gist_clipboard">Gist copied to clipboard</string>
 </resources>

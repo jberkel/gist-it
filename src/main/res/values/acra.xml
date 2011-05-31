@@ -1,6 +1,6 @@
 <resources>
     <string name="crash_notif_ticker_text">Epic fail</string>
-    <string name="crash_notif_title">send-to-gist has crashed</string>
+    <string name="crash_notif_title">gist-it has crashed</string>
     <string name="crash_notif_text">Please click here to help fix the issue.</string>
 
     <string name="crash_dialog_text">
@@ -9,7 +9,7 @@
     </string>
 
     <!-- optional. default is your application name -->
-    <string name="crash_dialog_title">send-to-gist has crashed</string>
+    <string name="crash_dialog_title">gist-it has crashed</string>
     <!-- optional. when defined, adds a user text field input with this text resource as a label -->
     <string name="crash_dialog_comment_prompt">Comment (optional):</string>
     <!-- optional. displays a Toast -->
