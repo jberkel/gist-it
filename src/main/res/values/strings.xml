@@ -40,10 +40,12 @@
     </string>
 
     <string name="replace">Replace gist</string>
+    <string name="refresh">Refresh</string>
 
     <string name="fork_me">Fork me</string>
     <string name="clear">Clear</string>
     <string name="load_gist">Load gist</string>
+    <string name="loading_gist">Loading gist</string>
     <string name="github_url">https://github.com/jberkel/send-to-gist</string>
     <string name="gist_clipboard">Gist copied to clipboard</string>
 </resources>

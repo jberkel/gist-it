@@ -9,8 +9,7 @@ import actors.Futures
 import Implicits._
 import android.webkit.WebSettings.ZoomDensity
 import android.app.{AlertDialog, ProgressDialog}
-import android.content.Context
-import android.net.{ConnectivityManager, Uri}
+import android.net.Uri
 import android.text.TextUtils
 import org.apache.http.HttpStatus
 import java.io.IOException
@@ -61,7 +60,6 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
 
     if (isConnected) {
       removeAllCookies()
-      log("opening " + api.authorizeUrl)
       view.loadUrl(api.authorizeUrl)
     } else showConnectionError(None)
   }
@@ -124,12 +122,6 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
   def removeAllCookies() {
     CookieSyncManager.createInstance(this)
     CookieManager.getInstance().removeAllCookie()
-  }
-
-  def isConnected = {
-    val manager = getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
-    val info = manager.getActiveNetworkInfo
-    info != null && info.isConnectedOrConnecting
   }
 
   override def onDestroy() {

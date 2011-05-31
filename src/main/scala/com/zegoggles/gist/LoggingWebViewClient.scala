@@ -10,7 +10,7 @@ import android.view.KeyEvent
 class LoggingWebViewClient extends WebViewClient with Logger {
   override def shouldOverrideUrlLoading(view: WebView, url: String): Boolean = {
     log("shouldOverrideUrlLoading(" + url + ")")
-    return super.shouldOverrideUrlLoading(view, url)
+    super.shouldOverrideUrlLoading(view, url)
   }
 
   override def onPageStarted(view: WebView, url: String, favicon: Bitmap) {
@@ -60,7 +60,7 @@ class LoggingWebViewClient extends WebViewClient with Logger {
 
   override def shouldOverrideKeyEvent(view: WebView, event: KeyEvent): Boolean = {
     log("shouldOverrideKeyEvent(" + event + ")")
-    return super.shouldOverrideKeyEvent(view, event)
+    super.shouldOverrideKeyEvent(view, event)
   }
 
   override def onUnhandledKeyEvent(view: WebView, event: KeyEvent) {

@@ -1,7 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        android:versionName="0.1"
-        android:versionCode="1"
-        package="com.zegoggles.gist">
+          package="com.zegoggles.gist"
+          android:versionName="0.1"
+          android:versionCode="1"
+          android:installLocation="auto">
 
 
     <application android:icon="@drawable/octocat"
@@ -10,6 +11,11 @@
                  android:theme="@android:style/Theme.Light.NoTitleBar">
 
         <activity android:name="UploadGist" android:windowSoftInputMode="stateAlwaysHidden">
+            <intent-filter>
+                <action android:name="com.zegoggles.gist.UPLOAD"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>
                 <data android:mimeType="text/*"/>
@@ -21,7 +27,23 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name="GistList"/>
+
+        <activity android:name="GistList">
+            <intent-filter>
+                <action android:name="com.zegoggles.gist.PICK"/>
+                <data android:scheme="gist"
+                      android:host="github.com"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="com.zegoggles.gist.PICK"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".examples.Upload"/>
+        <activity android:name=".examples.Pick"/>
 
         <service android:name="AuthenticatorService"
                  android:exported="true"

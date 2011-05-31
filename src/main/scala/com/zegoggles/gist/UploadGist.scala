@@ -1,20 +1,18 @@
 package com.zegoggles.gist
 import Implicits._
 
-import android.os.Bundle
 import java.lang.Boolean
 import android.widget.Toast
 import android.net.Uri
 import android.text.{TextUtils, ClipboardManager}
-import android.content.{Intent, Context}
-import android.app.{AlertDialog, ProgressDialog, Activity}
 import android.view.{MenuItem, Menu, KeyEvent, View}
-import actors.Futures
 import org.apache.http.HttpStatus
-import java.io.IOException
 import android.view.inputmethod.{InputMethodManager, EditorInfo}
+import android.app.{Activity, AlertDialog, ProgressDialog}
+import android.os.{BatteryManager, Bundle}
+import android.content.{IntentFilter, BroadcastReceiver, Intent, Context}
 
-class UploadGist extends Activity with Logger with ApiActivity with TypedActivity {
+class UploadGist extends Activity with Logger with ApiActivity with TypedActivity with BatteryAware {
   lazy val (public, filename, description, content) =
       (findView(TR.public_gist), findView(TR.filename), findView(TR.description), findView(TR.content))
 
@@ -33,6 +31,12 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
       else false
     )
 
+    if (getIntent.getAction == Intents.UPLOAD_GIST) {
+      // prefill some fields if we got called from our own intent
+      public.setChecked(getIntent.getBooleanExtra(Extras.PUBLIC, true))
+      description.setText(getIntent.getStringExtra(Extras.DESCRIPTION))
+    }
+
     findView(TR.upload_btn).setOnClickListener { v: View =>
         hideSoftKeyboard(content)
         val doUpload = () => upload(previousGist, public.isChecked, filename, description, content)
@@ -50,6 +54,8 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
 
     findView(TR.anon).setText(getString(R.string.anon_upload, getString(R.string.set_up_an_account)))
     Utils.clickify(findView(TR.anon), getString(R.string.set_up_an_account), addAccount(this))
+
+    preloadGists()
   }
 
   override def onResume() {
@@ -61,6 +67,7 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
     super.onSaveInstanceState(outState)
     previousGist.map(b => outState.putBundle(UploadGist.ExtraPreviousGist, b))
   }
+
   override def onRestoreInstanceState(state: Bundle) {
     super.onRestoreInstanceState(state)
     previousGist = if (state.getBundle(UploadGist.ExtraPreviousGist) != null)
@@ -95,6 +102,7 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
         Toast.makeText(this, R.string.gist_uploaded, Toast.LENGTH_SHORT).show()
         if (launchedViaIntent) {
           setResult(Activity.RESULT_OK, new Intent()
+            .setData(g.public_uri)
             .putExtra("location", g.url)
             .putExtra("url", g.public_url))
           finish()
@@ -111,6 +119,14 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
     Toast.makeText(this, R.string.uploading_failed, Toast.LENGTH_LONG).show()
   }
 
+  def preloadGists() {
+    // load gists eagerly if there's battery+connection
+    if (isConnected && hasBattery)
+      executeAsync(api.get(_),
+        Request("/gists"),
+        HttpStatus.SC_OK, None)(resp => app.preloadedList = Gist.list(resp.getEntity))(error => ())
+  }
+
   def textFromIntent(intent: Intent):String = {
     if (intent == null)
         ""
@@ -118,7 +134,6 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
         intent.getStringExtra(Intent.EXTRA_TEXT)
     else if (intent.hasExtra(Intent.EXTRA_STREAM)) {
         val uri:Uri = intent getParcelableExtra(Intent.EXTRA_STREAM)
-        log("fromIntent(uri="+uri+")")
         try {
           io.Source.fromInputStream(
             getContentResolver.openAssetFileDescriptor(uri, "r").createInputStream())
@@ -140,10 +155,17 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
     if (resultCode == Activity.RESULT_OK) {
-      requestCode match {
-        case UploadGist.LoadRequest    => loadGist(data);
+        val body = data.getStringExtra("body")
+        if (!TextUtils.isEmpty(body)) {
+          copyToClipboard(body)
+          Toast.makeText(this, R.string.gist_clipboard, Toast.LENGTH_SHORT).show()
+        }
+        description.setText(data.getStringExtra(Extras.DESCRIPTION))
+        filename.setText(data.getStringExtra(Extras.FILENAME))
+        public.setChecked(data.getBooleanExtra(Extras.PUBLIC, true))
+        content.setText(body)
+        previousGist = Some(data.getExtras)
       }
-    }
   }
 
   override def onCreateOptionsMenu(menu: Menu) = {
@@ -170,29 +192,8 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
     previousGist = None
   }
 
-  def loadGist(intent:Intent) = Futures.future {
-      try {
-        val gistContent = io.Source.fromURL(intent.getData.toString).mkString
-        copyToClipboard(gistContent)
-        runOnUiThread { () =>
-          Toast.makeText(this, R.string.gist_clipboard, Toast.LENGTH_SHORT).show()
-          description.setText(intent.getStringExtra("description"))
-          filename.setText(intent.getStringExtra("filename"))
-          public.setChecked(intent.getBooleanExtra("public", true))
-          content.setText(gistContent)
-          previousGist = Some(intent.getExtras)
-        }
-      } catch {
-        case e:IOException =>
-          runOnUiThread(Toast.makeText(this,
-            getString(R.string.loading_gist_failed, e.getMessage),
-            Toast.LENGTH_SHORT).show()
-          )
-      }
-  }
-
   def startLoadGist() {
-    startActivityForResult(new Intent(this, classOf[GistList]), UploadGist.LoadRequest)
+    startActivityForResult(new Intent(Intents.PICK_GIST), 0)
   }
 
   def setBackground(v: View, resId: Int, alpha: Int) {
@@ -210,5 +211,63 @@ class UploadGist extends Activity with Logger with ApiActivity with TypedActivit
 object UploadGist {
   val ExtraPreviousGist = "previousGist"
   val DefaultFileName   = "gistfile1.txt"
-  val LoadRequest       = 1
+}
+
+object Extras {
+  val DESCRIPTION = "description"
+  val PUBLIC      = "public"
+  val FILENAME    = "filename"
+}
+
+object Intents  {
+  val PICK_GIST   = "com.zegoggles.gist.PICK"
+  val UPLOAD_GIST = "com.zegoggles.gist.UPLOAD"
+}
+
+
+trait BatteryAware extends Activity {
+  case class BatteryInfo(var level:Int, var scale:Int, var voltage:Int, var temp:Int) {}
+  lazy val batteryStatus = new BatteryInfo(-1,-1,-1,-1)
+  val receiver = new BroadcastReceiver() {
+      override def onReceive(context:Context, intent:Intent) {
+        batteryStatus.level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+        batteryStatus.scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+        batteryStatus.temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1)
+        batteryStatus.voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1)
+      }
+  }
+  def hasBattery =  batteryStatus.level / batteryStatus.scale.toFloat > 0.7f
+  override def onResume() {
+    super.onResume()
+    registerReceiver(receiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+  }
+
+  override def onPause() {
+    super.onPause()
+    unregisterReceiver(receiver)
+  }
+}
+
+package examples {
+  // how to start from a console:
+  // am start -a android.intent.action.MAIN -n com.zegoggles.gist/.examples.Upload
+  class Upload extends Activity {
+    override def onCreate(bundle: Bundle) {
+      super.onCreate(bundle)
+
+      // this is how you would call the upload activity from another app
+      startActivityForResult(new Intent(Intents.UPLOAD_GIST)
+          .putExtra(Intent.EXTRA_TEXT, "text123")
+          .putExtra(Extras.PUBLIC, false)
+          .putExtra(Extras.DESCRIPTION, "testing gist upload via intent"), 0)
+    }
+
+    override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+      if (resultCode == Activity.RESULT_OK && data.getData != null) {
+        Toast.makeText(this, "Uploaded to "+data.getData,Toast.LENGTH_SHORT).show();
+      } else {
+        Toast.makeText(this, "Canceled",Toast.LENGTH_SHORT).show();
+      }
+    }
+  }
 }

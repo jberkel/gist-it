@@ -21,6 +21,7 @@ import java.io.IOException
 import org.apache.http.{HttpResponse, HttpStatus, NameValuePair}
 import actors.Futures
 import android.app.{Dialog, Activity}
+import android.net.ConnectivityManager
 
 object Request {
   def apply(s: String, p: (String, String)*) = {
@@ -31,7 +32,7 @@ object Request {
   implicit def string2Request(s: String): Request = new Request(s)
 }
 
-class Request(val url: String) extends  Logger {
+class Request(val url: String) {
   import collection.JavaConversions._
 
   lazy val params: ListBuffer[NameValuePair] = ListBuffer()
@@ -77,7 +78,7 @@ object Api {
     val obj: JSONObject = new JSONObject()
     for ((k, v) <- m) {
       obj.put(k, v match {
-        case m: Map[String, Any] => map2Json(m)
+        case m: Map[String,Any] => map2Json(m)
         case b: Boolean => b
         case i: Int     => i
         case l: Long    => l
@@ -135,7 +136,9 @@ class Api(val client_id: String, val client_secret: String, val redirect_uri: St
 }
 
 trait ApiActivity extends Activity with TokenHolder {
-  def api = getApplication.asInstanceOf[App].api
+  def app = getApplication.asInstanceOf[App]
+  def api = app.api
+
   def executeAsync(call: Request => HttpResponse, req: Request, expected: Int, progress: Option[Dialog])
                   (success: HttpResponse => Any)
                   (error: Api.Error => Any) = {
@@ -155,6 +158,12 @@ trait ApiActivity extends Activity with TokenHolder {
         case e: IOException => onUiThread { error(Left(e)) }
       }
     }
+  }
+
+  def isConnected = {
+    val manager = getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
+    val info = manager.getActiveNetworkInfo
+    info != null && info.isConnectedOrConnecting
   }
 }
 

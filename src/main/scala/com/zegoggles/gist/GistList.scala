@@ -1,31 +1,46 @@
 package com.zegoggles.gist
 
 import android.os.Bundle
-import android.view.{LayoutInflater, ViewGroup, View}
 import org.apache.http.HttpStatus
 import com.zegoggles.gist.Implicits._
 import android.app.{Activity, ProgressDialog, ListActivity}
 import android.content.{Intent, Context}
-import android.widget.{Toast, ListView, TextView, BaseAdapter}
 import android.text.Html
+import actors.Futures
+import java.io.IOException
+import scala.Left
+import android.widget._
+import android.view._
 
 class GistList extends ListActivity with ApiActivity with Logger {
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
-    setListAdapter(new GistAdapter())
-    loadGists()
-  }
-  override def getListAdapter:GistAdapter = super.getListAdapter.asInstanceOf[GistAdapter]
-  override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
-    val gist = getListAdapter.getItem(position)
-    setResult(Activity.RESULT_OK, new Intent().putExtras(gist.asBundle).setData(gist.uri))
-    finish()
+
+    if (getLastNonConfigurationInstance != null) {
+      setListAdapter(getLastNonConfigurationInstance.asInstanceOf[ListAdapter])
+    } else {
+      setListAdapter(new GistAdapter())
+
+      app.preloadedList match {
+        case Some(gists) => getListAdapter.setGists(gists)
+        case None        => loadGists(pathFromIntent(getIntent))
+      }
+    }
   }
 
-  def loadGists() {
+  def loadGist(gist: Gist)(result: Either[IOException,String] => Unit) = Futures.future {
+    runOnUiThread(
+      try {
+        result(Right(gist.load))
+      } catch {
+        case e: IOException => result(Left(e))
+      })
+  }
+
+  def loadGists(path: String) {
     val pd = ProgressDialog.show(this, null, getString(R.string.loading_gists), true)
     executeAsync(api.get(_),
-      Request("/gists"),
+      Request(path),
       HttpStatus.SC_OK, Some(pd))(resp => Gist.list(resp.getEntity).map(l => getListAdapter.setGists(l))) {
       error =>
         error match {
@@ -36,6 +51,50 @@ class GistList extends ListActivity with ApiActivity with Logger {
         finish()
     }
   }
+
+  override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
+    val gist = getListAdapter.getItem(position)
+    val extras = gist.asBundle
+
+    def done() {
+      setResult(Activity.RESULT_OK, new Intent().putExtras(extras).setData(gist.uri));
+      finish()
+    }
+
+    if (shouldLoadBody(getIntent)) {
+      val progress = ProgressDialog.show(this, null, getString(R.string.loading_gist), true)
+      loadGist(gist) { r =>
+        progress.dismiss()
+        r match {
+          case Right(body)     =>  extras.putString("body", body)
+          case Left(exception) =>
+            warn("error fetching content", exception)
+            Toast.makeText(this,
+              getString(R.string.loading_gist_failed, exception.getMessage),
+              Toast.LENGTH_SHORT).show()
+        }
+        done()
+      }
+    } else done()
+  }
+
+  override def onCreateOptionsMenu(menu: Menu) = {
+    menu.add(Menu.NONE, 1, Menu.NONE, R.string.refresh).setIcon(android.R.drawable.ic_menu_rotate)
+    super.onCreateOptionsMenu(menu)
+  }
+
+  override def onOptionsItemSelected(item: MenuItem) = item.getItemId match {
+    case 1 => loadGists(pathFromIntent(getIntent)); true
+    case _ => false
+  }
+
+  def pathFromIntent(intent: Intent): String =
+    if (intent.getData != null) intent.getData.getPath else "/gists"
+
+  def shouldLoadBody(intent: Intent) = intent.getBooleanExtra("load_gist", true)
+
+  override def onRetainNonConfigurationInstance() = getListAdapter
+  override def getListAdapter:GistAdapter = super.getListAdapter.asInstanceOf[GistAdapter]
 }
 
 class GistAdapter extends BaseAdapter {
@@ -63,5 +122,30 @@ class GistAdapter extends BaseAdapter {
   def setGists(l: Traversable[Gist]) {
     gists = Vector[Gist](l.toSeq:_*)
     notifyDataSetChanged()
+  }
+}
+
+package examples {
+  // how to start from a console:
+  // am start -a android.intent.action.MAIN -n com.zegoggles.gist/.examples.Pick
+  class Pick extends Activity {
+    override def onCreate(bundle: Bundle) {
+      super.onCreate(bundle)
+
+      // this is how you would call the upload activity from another app
+      startActivityForResult(new Intent(Intents.PICK_GIST), 0)
+
+      // here's how you would fetch only starred gists
+      //startActivityForResult(new Intent(Intents.PICK_GIST)
+      //  .setData(Uri.parse("gist://github.com/gists/starred")), 0)
+    }
+
+    override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+      if (resultCode == Activity.RESULT_OK && data.getData != null) {
+        Toast.makeText(this, "Picked "+data.getData,Toast.LENGTH_SHORT).show();
+      } else {
+        Toast.makeText(this, "Canceled",Toast.LENGTH_SHORT).show();
+      }
+    }
   }
 }

@@ -36,17 +36,17 @@ case class Gist(id: String, description: String,
 
   override def toString = "Gist %d".format(id)
   def asHtml = <span><b>{filename}</b><small> ({size_in_words}, {last_modified_ago})</small></span>
-  def public_url =  "https://gist.github.com/" + url.substring(url.lastIndexOf("/")+1)
-  def raw_content:Option[String] =
-    try {
-      Some(io.Source.fromURL(new URL(raw_url)).mkString)
-    } catch { case e:IOException => None }
+  lazy val public_url =  "https://gist.github.com/" + url.substring(url.lastIndexOf("/")+1)
+  lazy val public_uri = Uri.parse(public_url)
+  lazy val uri = Uri.parse(raw_url)
+
+  def raw_content:Option[String] = try { Some(load)} catch { case e:IOException => None }
+  def load = io.Source.fromURL(new URL(raw_url)).mkString
 
   def size_in_words = Utils.readableSize(size)
   def last_modified_ago = Utils.readableTime(System.currentTimeMillis() / 1000L - last_modified)
   def color = if (public) R.color.public_gist else R.color.private_gist
 
-  lazy val uri = Uri.parse(raw_url)
   def asBundle = {
     val b = new Bundle()
     b.putString("id", id)

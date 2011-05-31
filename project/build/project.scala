@@ -2,7 +2,7 @@ import sbt._
 
 trait Defaults extends BaseAndroidProject {
   def androidPlatformName = "android-8"
-  override def skipProguard = false
+  override def skipProguard = true
 }
 
 class Parent(info: ProjectInfo) extends ParentProject(info) with IdeaProject {
@@ -17,6 +17,8 @@ class Parent(info: ProjectInfo) extends ParentProject(info) with IdeaProject {
       with MarketPublish
       with IdeaProject
       with TypedResources {
+
+    override def compileOptions = super.compileOptions ++ Seq(Unchecked)
 
     val keyalias  = "change-me"
 
