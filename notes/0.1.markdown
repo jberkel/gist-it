@@ -1,1 +1,1 @@
-* Initial release: sending files to gist, editing existing gists
+* Initial release: send files to gist, edit existing gists
