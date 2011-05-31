@@ -13,7 +13,7 @@ Check the following screenshot to get an idea of the flow (this example uses the
 ![flow][]
 
 By default gists are created anonymously - you can add your github account
-using Android's "Account&Sync" preferences or follow the instructions in the
+using Android's "Accounts & Sync" settings or follow the instructions in the
 gist app itself.
 
 With an associated account you also have the ability to edit existing gists -
