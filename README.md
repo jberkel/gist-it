@@ -1,5 +1,7 @@
 # gist-it
 
+![icon][]
+
 Open source Android gist API client written in Scala.
 
 The Android app uses the new [github api][] to provide a "send to gist"
@@ -43,16 +45,21 @@ a snapshot version of the [sbt-android-plugin][].
     $ sbt update
     $ sbt 'project gist' package-debug
 
-
 To run tests:
 
     $ sbt 'project gist' test
 
 Pull requests welcome, especially the design needs some love (hint, hint).
 
+## Credits / License
+
+See LICENSE. Post it graphic by [christianalm][].
+
 [gist]: https://github.com/blog/118-here-s-the-gist-of-it
 [github api]: http://developer.github.com/v3/gists/
 [ColorNote Notepad]: https://market.android.com/details?id=com.socialnmobile.dictapps.notepad.color.note
 [sbt]: http://code.google.com/p/simple-build-tool/
 [sbt-android-plugin]: https://github.com/jberkel/android-plugin
-[flow]: https://github.com/downloads/jberkel/gist-it/send-flow.png
+[flow]: https://github.com/downloads/jberkel/gist-it/send_flow.png
+[icon]: https://github.com/downloads/jberkel/gist-it/gist-it-logo_128.png
+[christianalm]: http://graphicriver.net/user/cristianalm
