@@ -55,4 +55,4 @@ Pull requests welcome, especially the design needs some love (hint, hint).
 [ColorNote Notepad]: https://market.android.com/details?id=com.socialnmobile.dictapps.notepad.color.note
 [sbt]: http://code.google.com/p/simple-build-tool/
 [sbt-android-plugin]: https://github.com/jberkel/android-plugin
-[flow]: https://cloud.github.com/downloads/jberkel/gist-it/send-flow.png
+[flow]: https://github.com/downloads/jberkel/gist-it/send-flow.png
