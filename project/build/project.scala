@@ -23,7 +23,7 @@ class Parent(info: ProjectInfo) extends ParentProject(info) with IdeaProject {
     // needed to get annotations to work
     override def compileOrder = CompileOrder.JavaThenScala
 
-    val keyalias  = "change-me"
+    val keyalias  = "jberkel"
 
     val snapshots = "snapshots" at "http://scala-tools.org/repo-snapshots"
     val releases  = "releases" at "http://scala-tools.org/repo-releases"
