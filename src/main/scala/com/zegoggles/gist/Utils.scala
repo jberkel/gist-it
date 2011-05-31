@@ -22,12 +22,12 @@ object Utils {
     val start = string.indexOf(clickableText)
     if (start != -1) {
       val end = start + clickableText.length()
-      if (text.isInstanceOf[Spannable]) {
-        text.asInstanceOf[Spannable].setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-      } else {
-        val s = SpannableString.valueOf(text)
-        s.setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        v.setText(s)
+      text match {
+        case spannable:Spannable => spannable.setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        case other =>
+            val s = SpannableString.valueOf(other)
+            s.setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            v.setText(s)
       }
       val m = v.getMovementMethod
       if (m == null || !(m.isInstanceOf[LinkMovementMethod])) {

@@ -2,7 +2,7 @@ import sbt._
 
 trait Defaults extends BaseAndroidProject {
   def androidPlatformName = "android-8"
-  override def skipProguard = true
+  override def skipProguard = false
 }
 
 class Parent(info: ProjectInfo) extends ParentProject(info) with IdeaProject {
@@ -16,17 +16,23 @@ class Parent(info: ProjectInfo) extends ParentProject(info) with IdeaProject {
       with Defaults
       with MarketPublish
       with IdeaProject
-      with TypedResources {
+      with TypedResources
+      with posterous.Publish {
 
     override def compileOptions = super.compileOptions ++ Seq(Unchecked)
+    // needed to get annotations to work
+    override def compileOrder = CompileOrder.JavaThenScala
 
     val keyalias  = "change-me"
 
     val snapshots = "snapshots" at "http://scala-tools.org/repo-snapshots"
     val releases  = "releases" at "http://scala-tools.org/repo-releases"
+    val mavenLocal = "Local Maven Repository" at "file://"+Path.userHome+"/.m2/repository"
 
     val robospecs = "com.github.jbrechtel" %% "robospecs" % "0.1-SNAPSHOT" % "test"
     val robospecsSnapshots  = "snapshots" at "http://jbrechtel.github.com/repo/snapshots"
+
+    val acra = "org.acra" % "acra" % "4.2.2b-SNAPSHOT"
 
     def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
     override def testFrameworks = super.testFrameworks ++ Seq(specs2Framework)

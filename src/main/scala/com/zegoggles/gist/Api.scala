@@ -10,7 +10,6 @@ import android.accounts.{AccountManager, Account}
 import java.lang.Boolean
 import android.net.http.AndroidHttpClient
 import org.apache.http.client.HttpClient
-import org.apache.http.HttpHost
 import android.content.Context
 import android.content.pm.PackageManager
 import org.apache.http.params.HttpConnectionParams
@@ -18,10 +17,10 @@ import org.json.JSONObject
 import org.apache.http.message.{BasicHeader, BasicNameValuePair}
 import org.apache.http.entity.StringEntity
 import java.io.IOException
-import org.apache.http.{HttpResponse, HttpStatus, NameValuePair}
 import actors.Futures
 import android.app.{Dialog, Activity}
 import android.net.ConnectivityManager
+import org.apache.http._
 
 object Request {
   def apply(s: String, p: (String, String)*) = {
@@ -39,7 +38,7 @@ class Request(val url: String) {
   var body: Option[String] = None
 
   def add(key: String, value: Any): Request = {
-    params += new BasicNameValuePair(key, value.toString())
+    params += new BasicNameValuePair(key, value.toString)
     this
   }
 
@@ -110,8 +109,13 @@ class Api(val client_id: String, val client_secret: String, val redirect_uri: St
   def post(req: Request)  = execute(req, classOf[HttpPost])
   def patch(req: Request) = execute(req, classOf[HttpPatch])
 
-  def execute[T <: HttpRequestBase](req: Request, reqClass: Class[T]) =
-    client.execute(baseHost, withAuthHeader(req.toHTTPRequest(reqClass)))
+  def execute[T <: HttpRequestBase](request: Request, reqType: Class[T]) = (hostFor(request) match {
+      case Some(host) => client.execute(host, _:HttpUriRequest)
+      case None       => client.execute(_:HttpUriRequest)
+    })(withAuthHeader(request.toHTTPRequest(reqType)))
+
+  def hostFor(r: Request):Option[HttpHost] =
+    if (r.url.startsWith("http://")||r.url.startsWith("https://")) None else Some(baseHost)
 
   def exchangeToken(code: String): Option[Token] = {
     val resp = post(Request("https://github.com/login/oauth/access_token",
@@ -182,15 +186,14 @@ trait ApiHolder extends TokenHolder {
   val timeout = 10 * 1000
 
   lazy val api = new Api(
-    "4d483ec8f7deecf9c6f3",
-    "5aa049fafde02f0fdebe52809722b3b894ea7ed2",
-    "http://zegoggl.es/oauth/send-to-gist",
-    token
-  ) {
+    getString(R.string.client_id),
+    getString(R.string.client_secret),
+    getString(R.string.redirect_uri),
+    token) {
     override def makeClient = {
       val client = AndroidHttpClient.newInstance(userAgent, ApiHolder.this)
       HttpConnectionParams.setConnectionTimeout(client.getParams, timeout)
-      HttpConnectionParams.setSoTimeout(client.getParams, timeout);
+      HttpConnectionParams.setSoTimeout(client.getParams, timeout)
       client
     }
   }

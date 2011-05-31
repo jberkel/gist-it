@@ -29,7 +29,7 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
     view.getSettings.setLoadsImagesAutomatically(true)
 
     val progress = ProgressDialog.show(this, null, getString(R.string.loading_login), false)
-    view.setWebViewClient(new LoggingWebViewClient() {
+    view.setWebViewClient(new WebViewClient() {
       override def shouldOverrideUrlLoading(view: WebView, url: String) = {
         super.shouldOverrideUrlLoading(view, url)
         if (url.startsWith(api.redirect_uri)) {
@@ -68,32 +68,29 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
     val progress = ProgressDialog.show(this, null, getString(R.string.loading_token), false)
     Futures.future {
       try {
-        api.exchangeToken(code).map { token =>
-          log("successfully exchanged code for access token " + token)
-          val resp = api.get(Request("/user", "access_token"->token.access))
-          resp.getStatusLine.getStatusCode match {
-            case HttpStatus.SC_OK =>
-              User(resp.getEntity).map { user =>
-                handler.post {
-                  setAccountAuthenticatorResult(
-                    addAccount(user.login, token,
-                      "id" -> user.id.toString,
-                      "name" -> user.name,
-                      "email" -> user.email))
-                  finish()
-                }
+        val token = api.exchangeToken(code).getOrElse(throw new IOException("could not get token"))
+        val resp = api.get(Request("/user", "access_token"->token.access))
+        resp.getStatusLine.getStatusCode match {
+          case HttpStatus.SC_OK =>
+            User(resp.getEntity).map { user =>
+              handler.post {
+                setAccountAuthenticatorResult(
+                  addAccount(user.login, token,
+                    "id" -> user.id.toString,
+                    "name" -> user.name,
+                    "email" -> user.email))
               }
-            case c =>
-              log("invalid status ("+c+") "+resp.getStatusLine)
-              Toast.makeText(this, R.string.loading_token_failed, Toast.LENGTH_LONG).show()
-          }
+            }
+          case c =>
+            log("invalid status ("+c+") "+resp.getStatusLine)
+            Toast.makeText(this, R.string.loading_token_failed, Toast.LENGTH_LONG).show()
         }
       }
       catch {
         case e:IOException => warn("error", e)
         Toast.makeText(this, R.string.loading_token_failed, Toast.LENGTH_LONG).show()
       }
-      finally { handler.post { progress.dismiss() } }
+      finally { handler.post { progress.dismiss(); finish() } }
     }
   }
 

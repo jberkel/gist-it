@@ -1,7 +1,6 @@
 package com.zegoggles.gist
 import Implicits._
 
-import java.lang.Boolean
 import android.widget.Toast
 import android.net.Uri
 import android.text.{TextUtils, ClipboardManager}
@@ -11,8 +10,10 @@ import android.view.inputmethod.{InputMethodManager, EditorInfo}
 import android.app.{Activity, AlertDialog, ProgressDialog}
 import android.os.{BatteryManager, Bundle}
 import android.content.{IntentFilter, BroadcastReceiver, Intent, Context}
+import java.lang.Boolean
 
-class UploadGist extends Activity with Logger with ApiActivity with TypedActivity with BatteryAware {
+class UploadGist extends Activity
+  with Logger with ApiActivity with TypedActivity with BatteryAware {
   lazy val (public, filename, description, content) =
       (findView(TR.public_gist), findView(TR.filename), findView(TR.description), findView(TR.content))
 
@@ -264,9 +265,9 @@ package examples {
 
     override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
       if (resultCode == Activity.RESULT_OK && data.getData != null) {
-        Toast.makeText(this, "Uploaded to "+data.getData,Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Uploaded to "+data.getData,Toast.LENGTH_SHORT).show()
       } else {
-        Toast.makeText(this, "Canceled",Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Canceled",Toast.LENGTH_SHORT).show()
       }
     }
   }

@@ -45,17 +45,26 @@
         <activity android:name=".examples.Upload"/>
         <activity android:name=".examples.Pick"/>
 
+        <activity android:name="org.acra.CrashReportDialog"
+                   android:theme="@android:style/Theme.Dialog"
+                   android:launchMode="singleInstance"
+                   android:excludeFromRecents="true"
+                   android:finishOnTaskLaunch="true"/>
+
+
+        <activity android:name="Login" android:excludeFromRecents="true"/>
+
         <service android:name="AuthenticatorService"
                  android:exported="true"
                  android:process=":auth">
+
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator"/>
             </intent-filter>
+
             <meta-data android:name="android.accounts.AccountAuthenticator"
                        android:resource="@xml/authenticator"/>
         </service>
-
-        <activity android:name="Login" android:excludeFromRecents="true"/>
     </application>
 
     <supports-screens android:anyDensity="true" />

@@ -28,22 +28,21 @@ class GistList extends ListActivity with ApiActivity with Logger {
     }
   }
 
-  def loadGist(gist: Gist)(result: Either[IOException,String] => Unit) = Futures.future {
-    runOnUiThread(
-      try {
-        result(Right(gist.load))
-      } catch {
-        case e: IOException => result(Left(e))
-      })
+  def loadGist(gist: Gist)(whenDone: Either[IOException,String] => Unit) = Futures.future {
+    val result = try {
+      Right(gist.load)
+    } catch {
+      case e: IOException => Left(e)
+    }
+    runOnUiThread(whenDone(result))
   }
 
   def loadGists(path: String) {
     val pd = ProgressDialog.show(this, null, getString(R.string.loading_gists), true)
     executeAsync(api.get(_),
       Request(path),
-      HttpStatus.SC_OK, Some(pd))(resp => Gist.list(resp.getEntity).map(l => getListAdapter.setGists(l))) {
-      error =>
-        error match {
+      HttpStatus.SC_OK, Some(pd))(resp => Gist.list(resp.getEntity).map(onGistLoaded(_))) {
+      error => error match {
           case Left(e)  => warn("error getting gists", e)
           case Right(r) => warn("unexpected status code: "+r.getStatusLine)
         }
@@ -52,12 +51,17 @@ class GistList extends ListActivity with ApiActivity with Logger {
     }
   }
 
+  def onGistLoaded(g: Seq[Gist]) {
+    app.preloadedList = Some(g)
+    getListAdapter.setGists(g)
+  }
+
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
     val gist = getListAdapter.getItem(position)
     val extras = gist.asBundle
 
     def done() {
-      setResult(Activity.RESULT_OK, new Intent().putExtras(extras).setData(gist.uri));
+      setResult(Activity.RESULT_OK, new Intent().putExtras(extras).setData(gist.uri))
       finish()
     }
 
@@ -142,9 +146,9 @@ package examples {
 
     override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
       if (resultCode == Activity.RESULT_OK && data.getData != null) {
-        Toast.makeText(this, "Picked "+data.getData,Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Picked "+data.getData,Toast.LENGTH_SHORT).show()
       } else {
-        Toast.makeText(this, "Canceled",Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Canceled",Toast.LENGTH_SHORT).show()
       }
     }
   }
