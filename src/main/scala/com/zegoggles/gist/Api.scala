@@ -191,10 +191,12 @@ trait ApiHolder extends TokenHolder {
     getString(R.string.redirect_uri),
     token) {
     override def makeClient = {
-      val client = AndroidHttpClient.newInstance(userAgent, ApiHolder.this)
-      HttpConnectionParams.setConnectionTimeout(client.getParams, timeout)
-      HttpConnectionParams.setSoTimeout(client.getParams, timeout)
-      client
+      if (android.os.Build.VERSION.SDK_INT >= 8) {
+        val client = AndroidHttpClient.newInstance(userAgent, ApiHolder.this)
+        HttpConnectionParams.setConnectionTimeout(client.getParams, timeout)
+        HttpConnectionParams.setSoTimeout(client.getParams, timeout)
+        client
+      } else super.makeClient
     }
   }
 }

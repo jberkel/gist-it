@@ -1,1 +1,3 @@
 * Initial release: send files to gist, edit existing gists
+
+* Load/upload gists from other apps via intents
