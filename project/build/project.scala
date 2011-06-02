@@ -17,11 +17,15 @@ class Parent(info: ProjectInfo) extends ParentProject(info) with IdeaProject {
       with MarketPublish
       with IdeaProject
       with TypedResources
+      with AndroidManifestGenerator
       with posterous.Publish {
 
     override def compileOptions = super.compileOptions ++ Seq(Unchecked)
     // needed to get annotations to work
     override def compileOrder = CompileOrder.JavaThenScala
+
+    val api_keys = mainResPath / "values" / "keys.xml"
+    val api_keys_market = Path.fromFile("keys_market.xml")
 
     val keyalias  = "jberkel"
 
@@ -37,6 +41,19 @@ class Parent(info: ProjectInfo) extends ParentProject(info) with IdeaProject {
     def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
     override def testFrameworks = super.testFrameworks ++ Seq(specs2Framework)
     override def typedResource = manifestPackage.split('.').foldLeft(managedScalaPath)( (p,s) => p/s ) / "TR.scala"
+
+    override def prepareMarketAction = task {
+        val keys_backup = Path.fromFile("keys_backup.xml")
+        try {
+          FileUtilities.copyFile(api_keys, keys_backup, log)
+          FileUtilities.copyFile(api_keys_market, api_keys, log)
+          super.prepareMarketAction.run
+        } finally {
+          FileUtilities.copyFile(keys_backup, api_keys, log)
+          FileUtilities.clean(keys_backup, log)
+        }
+        None
+    } dependsOn(generateAndroidManifest)
   }
 
   class TestProject(info: ProjectInfo) extends AndroidTestProject(info)

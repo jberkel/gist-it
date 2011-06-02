@@ -1,7 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.zegoggles.gist"
-          android:versionName="0.1.1"
-          android:versionCode="2"
           android:installLocation="auto">
 
     <application android:icon="@drawable/gist_it_logo"

@@ -1,0 +1,2 @@
+* Accidentally released with wrong keys
+* Changed app logo (not allowed to use octocat)
