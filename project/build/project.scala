@@ -40,7 +40,6 @@ class Parent(info: ProjectInfo) extends ParentProject(info) with IdeaProject {
 
     def specs2Framework = new TestFramework("org.specs2.runner.SpecsFramework")
     override def testFrameworks = super.testFrameworks ++ Seq(specs2Framework)
-    override def typedResource = manifestPackage.split('.').foldLeft(managedScalaPath)( (p,s) => p/s ) / "TR.scala"
 
     override def prepareMarketAction = task {
         val keys_backup = Path.fromFile("keys_backup.xml")
