@@ -51,11 +51,11 @@ To run tests:
 
 Pull requests welcome, especially the design needs some love (hint, hint).
 
-[![][FlattrButton]][FlattrLink]
-
 ## Credits / License
 
 See LICENSE. Post it graphic by [christianalm][].
+
+[![][FlattrButton]][FlattrLink]
 
 [gist-it]: https://market.android.com/details?id=com.zegoggles.gist
 [gist]: https://github.com/blog/118-here-s-the-gist-of-it
