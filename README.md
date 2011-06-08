@@ -51,6 +51,8 @@ To run tests:
 
 Pull requests welcome, especially the design needs some love (hint, hint).
 
+[![][FlattrButton]][FlattrLink]
+
 ## Credits / License
 
 See LICENSE. Post it graphic by [christianalm][].
@@ -64,3 +66,5 @@ See LICENSE. Post it graphic by [christianalm][].
 [flow]: https://github.com/downloads/jberkel/gist-it/send_flow.png
 [icon]: https://github.com/downloads/jberkel/gist-it/gist-it-logo_128.png
 [christianalm]: http://graphicriver.net/user/cristianalm
+[FlattrLink]: https://flattr.com/thing/304054/gist-it
+[FlattrButton]: http://api.flattr.com/button/button-static-50x60.png
