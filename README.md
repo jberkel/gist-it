@@ -44,6 +44,7 @@ build the project, and a snapshot version of the [sbt-android-plugin][]
 (0.5.2-SNAPSHOT). Unfortunately until 0.5.2 is released you will have to build
 sbt-android-plugin from source.
 
+    $ export ANDROID_HOME=/path/to/sdk # or ANDROID_SDK_{HOME,ROOT}
     $ sbt update
     $ sbt 'project gist-it' package-debug
 
