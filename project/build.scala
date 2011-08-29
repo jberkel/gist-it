@@ -5,6 +5,7 @@ import AndroidKeys._
 object General {
   val settings = Defaults.defaultSettings ++ Seq (
     version := "0.1.2",
+    versionCode := 3,
     organization := "com.zegoggles"
   )
 
@@ -21,7 +22,8 @@ object General {
   val androidFullProjectSettings =
     androidProjectSettings ++
     TypedResources.settings ++
-    AndroidMarketPublish.settings
+    AndroidMarketPublish.settings ++
+    AndroidManifestGenerator.settings
 }
 
 object AndroidBuild extends Build {
