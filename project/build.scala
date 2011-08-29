@@ -20,7 +20,7 @@ object General {
 
   val androidFullProjectSettings =
     androidProjectSettings ++
-    TypedResources.settings
+    TypedResources.settings ++
     AndroidMarketPublish.settings
 }
 
