@@ -4,7 +4,7 @@ import android.accounts.{Account, OnAccountsUpdateListener, AccountManager}
 import org.acra.annotation.ReportsCrashes
 import org.acra.{ReportingInteractionMode, ACRA}
 
-@ReportsCrashes(formKey = "dFpjeHlmU1NGM1J5NjNhWlpyQWpqWVE6MQ",
+@ReportsCrashes(formUri = "https://bugsense.appspot.com/api/acra?api_key=02946e8e", formKey = "",
   mode = ReportingInteractionMode.NOTIFICATION,
   resNotifTickerText = R.string.crash_notif_ticker_text,
   resNotifTitle = R.string.crash_notif_title,
