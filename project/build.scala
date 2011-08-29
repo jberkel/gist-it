@@ -38,7 +38,7 @@ object AndroidBuild extends Build {
         "com.github.jbrechtel" %% "robospecs" % "0.1-SNAPSHOT" % "test"
       ),
       compileOrder := CompileOrder.JavaThenScala,
-      skipProguard in Android := false,
+      useProguard in Android := true,
       resolvers ++= Seq(
         MavenRepository("acra release repository", "http://acra.googlecode.com/svn/repository/releases"),
         MavenRepository("robospecs snapshots", "http://jbrechtel.github.com/repo/snapshots"),
