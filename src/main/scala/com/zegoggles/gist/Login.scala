@@ -30,6 +30,18 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
 
     val progress = ProgressDialog.show(this, null, getString(R.string.loading_login), false)
     view.setWebViewClient(new WebViewClient() {
+
+      override def onPageStarted(view: WebView, url: String, favicon: Bitmap) {
+        super.onPageStarted(view, url, favicon)
+        progress.show()
+        if (android.os.Build.VERSION.SDK_INT <= 7) {
+          // in 2.1 shouldOverrideUrlLoading doesn't get called
+          if (shouldOverrideUrlLoading(view, url)) {
+            view.stopLoading()
+          }
+        }
+      }
+
       override def shouldOverrideUrlLoading(view: WebView, url: String) = {
         super.shouldOverrideUrlLoading(view, url)
         if (url.startsWith(api.redirect_uri)) {
@@ -46,10 +58,6 @@ class Login extends AccountAuthenticatorActivity with Logger with ApiActivity wi
         showConnectionError(if (TextUtils.isEmpty(description)) None else Some(description))
       }
 
-      override def onPageStarted(view: WebView, url: String, favicon: Bitmap) {
-        super.onPageStarted(view, url, favicon)
-        progress.show()
-      }
 
       override def onPageFinished(view: WebView, url: String) {
         super.onPageFinished(view, url)
