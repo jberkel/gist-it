@@ -21,10 +21,10 @@ object General {
     AndroidProject.androidSettings
 
   val androidFullProjectSettings =
-    AndroidManifestGenerator.settings ++
     androidProjectSettings ++
     TypedResources.settings ++
     AndroidMarketPublish.settings ++
+    AndroidManifestGenerator.settings ++
     Github.settings
 }
 
