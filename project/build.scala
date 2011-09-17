@@ -1,6 +1,7 @@
 import sbt._
 import Keys._
 import AndroidKeys._
+import Github._
 
 object General {
   val settings = Defaults.defaultSettings ++ Seq (
@@ -20,10 +21,11 @@ object General {
     AndroidProject.androidSettings
 
   val androidFullProjectSettings =
+    AndroidManifestGenerator.settings ++
     androidProjectSettings ++
     TypedResources.settings ++
     AndroidMarketPublish.settings ++
-    AndroidManifestGenerator.settings
+    Github.settings
 }
 
 object AndroidBuild extends Build {
@@ -39,6 +41,7 @@ object AndroidBuild extends Build {
       ),
       compileOrder := CompileOrder.JavaThenScala,
       useProguard in Android := true,
+      githubRepo  in Android := "gist-it",
       resolvers ++= Seq(
         MavenRepository("acra release repository", "http://acra.googlecode.com/svn/repository/releases"),
         MavenRepository("robospecs snapshots", "http://jbrechtel.github.com/repo/snapshots"),
