@@ -7,7 +7,8 @@ object General {
   val settings = Defaults.defaultSettings ++ Seq (
     version := "0.1.3",
     versionCode := 4,
-    organization := "com.zegoggles"
+    organization := "com.zegoggles",
+    scalaVersion := "2.8.1"
   )
 
   val androidSettings =
