@@ -39,10 +39,8 @@ can do so with intents. At the moment there are two actions exposed:
 
 ## Building from source
 
-You need [sbt][] (simple-build-tool, &gt;= 0.10 ) in order to
-build the project, and a snapshot version of the [sbt-android-plugin][]
-(0.6.0-SNAPSHOT). Unfortunately until 0.6.0 is released you will have to build
-sbt-android-plugin from source.
+You need [sbt][] (simple-build-tool, &gt;= 0.11.1 ) in order to
+build the project,
 
     $ export ANDROID_HOME=/path/to/sdk # or ANDROID_SDK_{HOME,ROOT}
     $ sbt 'project gist-it' android:package-debug
