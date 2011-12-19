@@ -3,6 +3,8 @@ package com.zegoggles.gist
 import android.accounts.{Account, OnAccountsUpdateListener, AccountManager}
 import org.acra.annotation.ReportsCrashes
 import org.acra.{ReportingInteractionMode, ACRA}
+import android.os.StrictMode.ThreadPolicy
+import android.os.{Build, StrictMode}
 
 @ReportsCrashes(formUri = "https://bugsense.appspot.com/api/acra?api_key=02946e8e", formKey = "",
   mode = ReportingInteractionMode.NOTIFICATION,
@@ -26,6 +28,14 @@ class App extends android.app.Application with Logger with ApiHolder {
         preloadedList = None
       }
     }, /*handler*/ null, /*updateImmediately*/ false)
+
+
+    // emulate honeycomb+ network crash behaviour in Gingerbread
+    if (Build.VERSION.SDK_INT >= 9 && Build.VERSION.SDK_INT < 11) {
+      StrictMode.setThreadPolicy(new ThreadPolicy.Builder().detectNetwork().penaltyDeath().build())
+    }
+
+    super.onCreate()
   }
 }
 
