@@ -8,7 +8,7 @@ object General {
     version := "0.1.3",
     versionCode := 4,
     organization := "com.zegoggles",
-    scalaVersion := "2.8.1"
+    scalaVersion := "2.9.1"
   )
 
   val androidSettings =
@@ -37,8 +37,8 @@ object AndroidBuild extends Build {
     settings = General.androidFullProjectSettings ++ Seq (
       keyalias in Android := "jberkel",
       libraryDependencies ++= Seq(
-        "org.acra" % "acra" % "4.2.3",
-        "com.github.jbrechtel" %% "robospecs" % "0.1-SNAPSHOT" % "test"
+        "org.acra" % "acra" % "4.2.3"
+        //"com.github.jbrechtel" %% "robospecs" % "0.1-SNAPSHOT" % "test"
       ),
       compileOrder := CompileOrder.JavaThenScala,
       useProguard in Android := true,
