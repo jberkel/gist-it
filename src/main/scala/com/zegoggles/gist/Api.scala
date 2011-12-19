@@ -15,12 +15,12 @@ import android.content.pm.PackageManager
 import org.apache.http.params.HttpConnectionParams
 import org.json.JSONObject
 import org.apache.http.message.{BasicHeader, BasicNameValuePair}
-import org.apache.http.entity.StringEntity
 import java.io.IOException
 import actors.Futures
 import android.app.{Dialog, Activity}
 import android.net.ConnectivityManager
 import org.apache.http._
+import entity.{BufferedHttpEntity, StringEntity}
 
 object Request {
   def apply(s: String, p: (String, String)*) = {
@@ -154,6 +154,9 @@ trait ApiActivity extends Activity with TokenHolder {
     Futures.future {
       try {
         val resp = call(req)
+        resp.setEntity(new BufferedHttpEntity(resp.getEntity))
+        resp.getEntity.consumeContent()
+
         resp.getStatusLine.getStatusCode match {
           case code if code == expected => onUiThread { success(resp)}
           case other                    => onUiThread { error(Right(resp))}
