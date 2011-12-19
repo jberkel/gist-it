@@ -8,7 +8,7 @@ object General {
     version := "0.1.4",
     versionCode := 5,
     organization := "com.zegoggles",
-    scalaVersion := "2.9.1"
+    scalaVersion := "2.8.1" // 2.9.1 fail with DEXOPT install errors
   )
 
   val androidSettings =
