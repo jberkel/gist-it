@@ -39,7 +39,7 @@ can do so with intents. At the moment there are two actions exposed:
 
 ## Building from source
 
-You need [sbt][] (simple-build-tool, &gt;= 0.11.1 ) in order to
+You need [sbt][] (simple-build-tool, &gt;= 0.11.2 ) in order to
 build the project,
 
     $ export ANDROID_HOME=/path/to/sdk # or ANDROID_SDK_{HOME,ROOT}
