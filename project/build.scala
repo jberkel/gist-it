@@ -5,8 +5,8 @@ import Github._
 
 object General {
   val settings = Defaults.defaultSettings ++ Seq (
-    version := "0.1.3",
-    versionCode := 4,
+    version := "0.1.4",
+    versionCode := 5,
     organization := "com.zegoggles",
     scalaVersion := "2.9.1"
   )
