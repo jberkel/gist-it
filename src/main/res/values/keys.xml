@@ -4,5 +4,5 @@
 
     <string name="client_id">e9a53e8a136ac429a4e9</string>
     <string name="client_secret">69f3a4728277be9e4669e53afe3a2add1e2786e7</string>
-    <string name="redirect_uri">http://zegoggl.es/oauth/send-to-gist</string>
+    <string name="redirect_uri">http://zegoggl.es/oauth/gist-it</string>
 </resources>
