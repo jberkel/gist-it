@@ -43,6 +43,7 @@ object AndroidBuild extends Build {
       compileOrder := CompileOrder.JavaThenScala,
       useProguard in Android := true,
       githubRepo  in Android := "gist-it",
+      cachePasswords in Android := true,
       resolvers ++= Seq(
         MavenRepository("acra release repository", "http://acra.googlecode.com/svn/repository/releases"),
         MavenRepository("robospecs snapshots", "http://jbrechtel.github.com/repo/snapshots"),
