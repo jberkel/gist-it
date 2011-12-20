@@ -43,11 +43,11 @@ You need [sbt][] (simple-build-tool, &gt;= 0.11.2 ) in order to
 build the project,
 
     $ export ANDROID_HOME=/path/to/sdk # or ANDROID_SDK_{HOME,ROOT}
-    $ sbt 'project gist-it' android:package-debug
+    $ sbt android:package-debug
 
 To run tests:
 
-    $ sbt 'project gist-it' test
+    $ sbt test
 
 Pull requests welcome, especially the design needs some love (hint, hint).
 
